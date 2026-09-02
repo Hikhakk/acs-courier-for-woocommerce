@@ -108,4 +108,11 @@ final class OrderData {
 	 * @var string
 	 */
 	public string $pickupPointId = '';
+
+	/**
+	 * Amount to collect on delivery, or null when the order is prepaid.
+	 *
+	 * @var float|null
+	 */
+	public ?float $codAmount = null;
 }

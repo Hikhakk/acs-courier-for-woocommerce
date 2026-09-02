@@ -33,7 +33,7 @@ final class Settings {
 	/**
 	 * Keys that are safe to render as plain text.
 	 */
-	private const PLAIN_KEYS = array( 'company_id', 'user_id', 'billing_code', 'sender_name', 'charge_type', 'content_type_id', 'origin_station', 'print_type' );
+	private const PLAIN_KEYS = array( 'company_id', 'user_id', 'billing_code', 'sender_name', 'charge_type', 'content_type_id', 'origin_station', 'print_type', 'cod_payment_way' );
 
 	/**
 	 * Hooks the settings screen into WooCommerce.
@@ -144,6 +144,16 @@ final class Settings {
 				'options' => array(
 					'1' => __( 'Thermal', 'acs-courier-for-woocommerce' ),
 					'2' => __( 'A4 laser (three per page)', 'acs-courier-for-woocommerce' ),
+				),
+			),
+			array(
+				'id'      => 'acs_wc_cod_payment_way',
+				'title'   => __( 'Cash on delivery collected as', 'acs-courier-for-woocommerce' ),
+				'type'    => 'select',
+				'value'   => $stored['cod_payment_way'] ?? '0',
+				'options' => array(
+					'0' => __( 'Cash', 'acs-courier-for-woocommerce' ),
+					'1' => __( 'Cheque', 'acs-courier-for-woocommerce' ),
 				),
 			),
 			array(

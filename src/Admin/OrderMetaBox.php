@@ -168,6 +168,7 @@ final class OrderMetaBox {
 			$mapper_settings->defaultContentTypeId = isset( $settings['content_type_id'] ) && '' !== $settings['content_type_id']
 				? (int) $settings['content_type_id']
 				: null;
+			$mapper_settings->codPaymentWay        = (int) ( $settings['cod_payment_way'] ?? 0 );
 			$mapper_settings->pickupDate           = gmdate( 'Y-m-d' );
 
 			$shipment = OrderMapper::toShipment( WooOrderReader::read( $order ), $mapper_settings );

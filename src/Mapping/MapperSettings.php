@@ -51,4 +51,11 @@ final class MapperSettings {
 	 * @var string
 	 */
 	public string $pickupDate = '';
+
+	/**
+	 * How cash on delivery is collected: 0 = cash, 1 = cheque.
+	 *
+	 * @var int
+	 */
+	public int $codPaymentWay = 0;
 }

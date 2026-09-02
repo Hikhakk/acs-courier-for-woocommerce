@@ -4,7 +4,7 @@ Tags: woocommerce, shipping, courier, greece, cyprus
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 8.0
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,7 @@ no paid tier, no licence key, no usage limit and no upsell.
 * Track shipments, with non-delivery reasons in plain English
 * Let customers collect from an ACS store or Smartpoint locker at checkout
 * Live shipping prices for Greece, and a rate table for Cyprus
+* Cash on delivery, with the amount taken from the order
 * Works with both High-Performance Order Storage (HPOS) and the legacy order tables
 
 = Requirements =
@@ -114,10 +115,10 @@ No. See the External services section above.
 
 == Changelog ==
 
-= 0.3.0 =
+= 0.4.0 =
 * Initial release: voucher creation from WooCommerce orders, Greece and Cyprus support.
 
 == Upgrade Notice ==
 
-= 0.3.0 =
+= 0.4.0 =
 First release.

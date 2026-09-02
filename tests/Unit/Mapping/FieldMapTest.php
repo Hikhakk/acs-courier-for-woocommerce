@@ -124,6 +124,36 @@ final class FieldMapTest extends TestCase {
 		self::assertSame( 'REC,SAT', $params['Acs_Delivery_Products'] );
 	}
 
+	public function test_cod_to_a_pickup_point_requires_an_email(): void {
+		$problems = FieldMap::validate(
+			$this->cyprusShipment(
+				array(
+					'stationDestination'       => 'NI',
+					'stationBranchDestination' => 503,
+					'codAmount'                => 50.0,
+					'recipientEmail'           => '',
+				)
+			)
+		);
+
+		self::assertNotEmpty( $problems );
+		self::assertStringContainsString( 'email', strtolower( implode( ' ', $problems ) ) );
+	}
+
+	public function test_a_cod_amount_reaches_the_misspelled_acs_field(): void {
+		$params = FieldMap::toCreateVoucherParams(
+			$this->cyprusShipment(
+				array(
+					'codAmount'     => 50.5,
+					'codPaymentWay' => 0,
+				)
+			)
+		);
+
+		self::assertSame( 50.5, $params['Cod_Ammount'] );
+		self::assertSame( 0, $params['Cod_Payment_Way'] );
+	}
+
 	public function test_more_than_99_pieces_is_rejected(): void {
 		self::assertNotEmpty( FieldMap::validate( $this->cyprusShipment( array( 'itemQuantity' => 100 ) ) ) );
 	}

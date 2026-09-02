@@ -71,6 +71,7 @@ final class OrderMapper {
 		}
 
 		self::applyPickupPoint( $shipment, $order->pickupPointId );
+		self::applyCashOnDelivery( $shipment, $order->codAmount, $settings );
 
 		return $shipment;
 	}
@@ -81,6 +82,28 @@ final class OrderMapper {
 	 * @param OrderData $order Order.
 	 * @return Weight
 	 */
+	/**
+	 * Attaches cash on delivery when the order is not prepaid.
+	 *
+	 * @param Shipment       $shipment Shipment being built.
+	 * @param float|null     $amount   Amount to collect, or null when prepaid.
+	 * @param MapperSettings $settings Merchant configuration.
+	 * @return void
+	 */
+	private static function applyCashOnDelivery( Shipment $shipment, ?float $amount, MapperSettings $settings ): void {
+		if ( null === $amount || $amount <= 0.0 ) {
+			return;
+		}
+
+		$shipment->codAmount = round( $amount, 2 );
+		// 0 = cash, 1 = cheque. ACS rejects anything else when COD is present.
+		$shipment->codPaymentWay = $settings->codPaymentWay;
+
+		if ( ! in_array( 'COD', $shipment->deliveryProducts, true ) ) {
+			$shipment->deliveryProducts[] = 'COD';
+		}
+	}
+
 	/**
 	 * Routes the shipment to a pickup point when the customer chose one.
 	 *

@@ -39,6 +39,19 @@ final class WooOrderReader {
 		$data->weightUnit    = (string) get_option( 'woocommerce_weight_unit', 'kg' );
 		$data->pickupPointId = (string) $order->get_meta( LockerSelector::FIELD );
 
+		/**
+		 * Filters which payment gateways mean cash on delivery.
+		 *
+		 * @since 0.4.0
+		 *
+		 * @param list<string> $gateways Gateway ids treated as COD.
+		 */
+		$cod_gateways = apply_filters( 'acs_wc_cod_gateways', array( 'cod' ) );
+
+		if ( in_array( (string) $order->get_payment_method(), (array) $cod_gateways, true ) && ! $order->is_paid() ) {
+			$data->codAmount = (float) $order->get_total();
+		}
+
 		$shipping_phone = method_exists( $order, 'get_shipping_phone' ) ? (string) $order->get_shipping_phone() : '';
 		$data->phone    = '' !== $shipping_phone ? $shipping_phone : (string) $order->get_billing_phone();
 
