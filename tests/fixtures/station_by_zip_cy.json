@@ -1,0 +1,12 @@
+{
+  "ACSExecution_HasError": false,
+  "ACSExecutionErrorMessage": "",
+  "ACSOutputResponce": {
+    "ACSValueOutput": [ { "Error_Message": null } ],
+    "ACSTableOutput": {
+      "Table_Data": [
+        { "PostalCode": 1010, "ACS Station": "NI", "PostalCode Description": "Λευκωσία", "Prefecture": "" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,133 @@
+# Copyright (C) 2026 KD Vassiliou Group
+# This file is distributed under the GPL-2.0-or-later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: ACS Courier for WooCommerce 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/Hikhakk/acs-courier-for-woocommerce/issues\n"
+"POT-Creation-Date: 2026-09-02 17:40+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: acs-courier-for-woocommerce\n"
+
+#: src/Admin/OrderMetaBox.php:57
+#: src/Admin/Settings.php:47
+#: src/Admin/Settings.php:91
+msgid "ACS Courier"
+msgstr ""
+
+#: src/Plugin.php:68
+msgid "ACS Courier for WooCommerce"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:183
+msgid "ACS rejected the shipment: %s"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:159
+msgid "ACS voucher created: %s"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:171
+msgid "ACS voucher not created: %s"
+msgstr ""
+
+#: src/Admin/Settings.php:100
+msgid "API key"
+msgstr ""
+
+#: src/Admin/Settings.php:103
+msgid "Billing code"
+msgstr ""
+
+#: src/Admin/Settings.php:96
+msgid "Company ID"
+msgstr ""
+
+#: src/Admin/Settings.php:97
+msgid "Company password"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:98
+msgid "Create ACS voucher"
+msgstr ""
+
+#: src/Admin/Settings.php:93
+msgid "Credentials are issued by ACS Courier. This plugin sends order delivery details to ACS in order to create shipments."
+msgstr ""
+
+#: src/Admin/Settings.php:127
+msgid "Default content type (Cyprus)"
+msgstr ""
+
+#: src/Admin/Settings.php:85
+msgid "Leave blank to keep the stored value."
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:117
+msgid "Order not found."
+msgstr ""
+
+#: src/Support/Requirements.php:63
+msgid "PHP %1$s or newer is required; this site runs %2$s."
+msgstr ""
+
+#: src/Admin/Settings.php:113
+msgid "Printed on every voucher."
+msgstr ""
+
+#: src/Admin/Settings.php:122
+msgid "Recipient"
+msgstr ""
+
+#: src/Admin/Settings.php:130
+msgid "Required by customs for shipments to Cyprus."
+msgstr ""
+
+#: src/Admin/Settings.php:121
+msgid "Sender"
+msgstr ""
+
+#: src/Admin/Settings.php:110
+msgid "Sender name"
+msgstr ""
+
+#: src/Admin/Settings.php:84
+msgid "Set by the %s constant in wp-config.php."
+msgstr ""
+
+#: src/Admin/Settings.php:106
+msgid "The ACS credit code for your account."
+msgstr ""
+
+#: src/Admin/Settings.php:98
+msgid "User ID"
+msgstr ""
+
+#: src/Admin/Settings.php:99
+msgid "User password"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:87
+msgid "Voucher"
+msgstr ""
+
+#: src/Admin/Settings.php:117
+msgid "Who pays"
+msgstr ""
+
+#: src/Support/Requirements.php:81
+msgid "WooCommerce %1$s or newer is required; this site runs %2$s."
+msgstr ""
+
+#: src/Support/Requirements.php:77
+msgid "WooCommerce is required but is not active."
+msgstr ""
+
+#: src/Support/Requirements.php:71
+msgid "WordPress %1$s or newer is required; this site runs %2$s."
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:111
+msgid "You are not allowed to do that."
+msgstr ""
