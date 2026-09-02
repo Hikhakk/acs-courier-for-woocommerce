@@ -4,9 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-09-02
 
 ### Added
+- WooCommerce shipping method offering ACS home delivery and pickup-point rates,
+  configurable per shipping zone.
+- Checkout pickup point selector, served from a local indexed table so checkout never
+  waits on ACS. Around 1,600 points across Greece and Cyprus.
+- Daily pickup point refresh through Action Scheduler.
+- The chosen pickup point now routes the voucher, adding the ACS `REC` product.
+- Origin station and label format settings.
+
+### Added earlier in this cycle
 - Country-aware rate resolution. Greece is priced live by ACS; Cyprus uses a local
   weight-banded table, because `ACS_Price_Calculation` does not support Cyprus.
 - A rate table with weight bands, separate home and locker pricing, a per-kilo increment

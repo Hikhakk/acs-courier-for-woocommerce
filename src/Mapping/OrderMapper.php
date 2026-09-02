@@ -70,6 +70,8 @@ final class OrderMapper {
 			$shipment->contentTypeId = $settings->defaultContentTypeId;
 		}
 
+		self::applyPickupPoint( $shipment, $order->pickupPointId );
+
 		return $shipment;
 	}
 
@@ -77,6 +79,39 @@ final class OrderMapper {
 	 * Weight.
 	 *
 	 * @param OrderData $order Order.
+	 * @return Weight
+	 */
+	/**
+	 * Routes the shipment to a pickup point when the customer chose one.
+	 *
+	 * @param Shipment $shipment Shipment being built.
+	 * @param string   $point_id Chosen point as "STATION:BRANCH".
+	 * @return void
+	 */
+	private static function applyPickupPoint( Shipment $shipment, string $point_id ): void {
+		$point_id = trim( $point_id );
+		if ( '' === $point_id || false === strpos( $point_id, ':' ) ) {
+			return;
+		}
+
+		list( $station, $branch ) = explode( ':', $point_id, 2 );
+		if ( '' === $station ) {
+			return;
+		}
+
+		$shipment->stationDestination       = $station;
+		$shipment->stationBranchDestination = (int) $branch;
+
+		// REC is the ACS product for collection from a store or Smartpoint.
+		if ( ! in_array( 'REC', $shipment->deliveryProducts, true ) ) {
+			$shipment->deliveryProducts[] = 'REC';
+		}
+	}
+
+	/**
+	 * Converts the order weight into kilograms.
+	 *
+	 * @param OrderData $order Order to read.
 	 * @return Weight
 	 */
 	private static function weight( OrderData $order ): Weight {

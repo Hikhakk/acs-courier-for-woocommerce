@@ -33,7 +33,7 @@ final class Settings {
 	/**
 	 * Keys that are safe to render as plain text.
 	 */
-	private const PLAIN_KEYS = array( 'company_id', 'user_id', 'billing_code', 'sender_name', 'charge_type', 'content_type_id' );
+	private const PLAIN_KEYS = array( 'company_id', 'user_id', 'billing_code', 'sender_name', 'charge_type', 'content_type_id', 'origin_station', 'print_type' );
 
 	/**
 	 * Hooks the settings screen into WooCommerce.
@@ -128,6 +128,23 @@ final class Settings {
 				'type'  => 'number',
 				'value' => $stored['content_type_id'] ?? '',
 				'desc'  => __( 'Required by customs for shipments to Cyprus.', 'acs-courier-for-woocommerce' ),
+			),
+			array(
+				'id'    => 'acs_wc_origin_station',
+				'title' => __( 'Origin ACS station', 'acs-courier-for-woocommerce' ),
+				'type'  => 'text',
+				'value' => $stored['origin_station'] ?? '',
+				'desc'  => __( 'The ACS station code you despatch from, in Greek capitals, e.g. ΑΘ. Used for live Greek pricing.', 'acs-courier-for-woocommerce' ),
+			),
+			array(
+				'id'      => 'acs_wc_print_type',
+				'title'   => __( 'Label format', 'acs-courier-for-woocommerce' ),
+				'type'    => 'select',
+				'value'   => $stored['print_type'] ?? '2',
+				'options' => array(
+					'1' => __( 'Thermal', 'acs-courier-for-woocommerce' ),
+					'2' => __( 'A4 laser (three per page)', 'acs-courier-for-woocommerce' ),
+				),
 			),
 			array(
 				'type' => 'sectionend',

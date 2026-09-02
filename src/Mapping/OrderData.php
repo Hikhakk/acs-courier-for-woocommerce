@@ -101,4 +101,11 @@ final class OrderData {
 	 * @var string
 	 */
 	public string $customerNote = '';
+
+	/**
+	 * Chosen ACS pickup point as "STATION:BRANCH", empty for home delivery.
+	 *
+	 * @var string
+	 */
+	public string $pickupPointId = '';
 }

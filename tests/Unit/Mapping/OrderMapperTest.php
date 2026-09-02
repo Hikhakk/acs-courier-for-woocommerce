@@ -112,6 +112,35 @@ final class OrderMapperTest extends TestCase {
 		self::assertSame( 'Ring twice', $shipment->deliveryNotes );
 	}
 
+	public function test_a_chosen_pickup_point_routes_the_shipment(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order( array( 'pickupPointId' => 'NI:503' ) ),
+			$this->settings()
+		);
+
+		self::assertSame( 'NI', $shipment->stationDestination );
+		self::assertSame( 503, $shipment->stationBranchDestination );
+		self::assertContains( 'REC', $shipment->deliveryProducts );
+		self::assertTrue( $shipment->isToPickupPoint() );
+	}
+
+	public function test_no_pickup_point_means_home_delivery(): void {
+		$shipment = OrderMapper::toShipment( $this->order(), $this->settings() );
+
+		self::assertNull( $shipment->stationDestination );
+		self::assertFalse( $shipment->isToPickupPoint() );
+		self::assertNotContains( 'REC', $shipment->deliveryProducts );
+	}
+
+	public function test_a_malformed_pickup_point_is_ignored_rather_than_guessed(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order( array( 'pickupPointId' => 'garbage' ) ),
+			$this->settings()
+		);
+
+		self::assertFalse( $shipment->isToPickupPoint() );
+	}
+
 	public function test_an_unsupported_country_is_rejected_early(): void {
 		$this->expectException( \InvalidArgumentException::class );
 		OrderMapper::toShipment( $this->order( array( 'countryCode' => 'DE' ) ), $this->settings() );

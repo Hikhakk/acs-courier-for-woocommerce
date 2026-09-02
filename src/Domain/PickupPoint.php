@@ -249,6 +249,33 @@ final class PickupPoint {
 	}
 
 	/**
+	 * Latitude, or null when ACS gave none.
+	 *
+	 * @return float|null
+	 */
+	public function lat(): ?float {
+		return $this->lat;
+	}
+
+	/**
+	 * Longitude, or null when ACS gave none.
+	 *
+	 * @return float|null
+	 */
+	public function lng(): ?float {
+		return $this->lng;
+	}
+
+	/**
+	 * Whether ACS supplied coordinates for this point.
+	 *
+	 * @return bool
+	 */
+	public function hasCoordinates(): bool {
+		return null !== $this->lat && null !== $this->lng;
+	}
+
+	/**
 	 * Great-circle distance to a coordinate, in kilometres.
 	 *
 	 * @param float $lat Latitude to measure from.

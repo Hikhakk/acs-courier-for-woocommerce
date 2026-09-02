@@ -93,10 +93,11 @@ issued — after that, deletion is impossible.
 - [x] Pickup list workflow
 - [x] Tracking sync and non-delivery reasons
 - [x] Pickup point model and distance search (1,620 live points verified)
-- [ ] Checkout locker selector UI
+- [x] Checkout locker selector
 - [x] Rate resolution: live Greek pricing, Cypriot rate table, fallback when ACS is down
-- [ ] WooCommerce shipping method wiring
+- [x] WooCommerce shipping method
 - [ ] Cash on delivery
+- [ ] Map view for pickup point selection
 
 ## Contributing
 
