@@ -35,6 +35,13 @@ final class AcsException extends \RuntimeException {
 	private string $kind;
 
 	/**
+	 * Response body that produced the failure, when there was one.
+	 *
+	 * @var array<string,mixed>
+	 */
+	private array $response = array();
+
+	/**
 	 * __construct.
 	 *
 	 * @param string $message Message.
@@ -48,14 +55,30 @@ final class AcsException extends \RuntimeException {
 	}
 
 	/**
-	 * Business.
+	 * A failure ACS reported in its response body.
 	 *
-	 * @param string $message Message.
-	 * @param string $alias Alias.
+	 * @param string              $message  Message exactly as ACS worded it.
+	 * @param string              $alias    ACS method that failed.
+	 * @param array<string,mixed> $response Response payload, for callers that can interpret it.
 	 * @return self
 	 */
-	public static function business( string $message, string $alias ): self {
-		return new self( $message, $alias, self::KIND_BUSINESS );
+	public static function business( string $message, string $alias, array $response = array() ): self {
+		$e           = new self( $message, $alias, self::KIND_BUSINESS );
+		$e->response = $response;
+		return $e;
+	}
+
+	/**
+	 * Returns the ACS payload that produced the failure.
+	 *
+	 * Some ACS methods report a condition as an error while still returning
+	 * data the caller needs, such as the unprinted vouchers that block a
+	 * pickup list.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function response(): array {
+		return $this->response;
 	}
 
 	/**

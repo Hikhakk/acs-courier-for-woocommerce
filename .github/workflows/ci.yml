@@ -28,7 +28,9 @@ jobs:
           tools: composer:v2
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
+        # update, not install: PHPUnit 10 requires PHP 8.1+, so the 8.0 job must
+        # be free to resolve PHPUnit 9.6 rather than replay a lock built elsewhere.
+        run: composer update --prefer-dist --no-progress
 
       - name: Unit tests
         run: composer test

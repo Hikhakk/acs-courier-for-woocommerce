@@ -163,7 +163,7 @@ final class AcsClient {
 			if ( null === $message || '' === $message ) {
 				continue;
 			}
-			throw AcsException::business( (string) $message, $alias );
+			throw AcsException::business( (string) $message, $alias, $response );
 		}
 	}
 
