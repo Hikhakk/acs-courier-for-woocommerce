@@ -82,6 +82,22 @@
         </properties>
     </rule>
 
+    <!--
+        Generic array shapes (list<string>, array<string,mixed>) are deliberate and
+        verified by PHPStan; PHP itself cannot express them as a type hint.
+    -->
+    <rule ref="Squiz.Commenting.FunctionComment.IncorrectTypeHint">
+        <exclude-pattern>src/*</exclude-pattern>
+    </rule>
+
+    <!--
+        ACS returns label and manifest PDFs as base64. Decoding them is the whole
+        point, not obfuscation.
+    -->
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode">
+        <exclude-pattern>src/Service/*</exclude-pattern>
+    </rule>
+
     <!-- WooCommerce capabilities are not in WPCS's known-capability list. -->
     <rule ref="WordPress.WP.Capabilities">
         <properties>
