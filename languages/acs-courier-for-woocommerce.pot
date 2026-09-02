@@ -2,15 +2,15 @@
 # This file is distributed under the GPL-2.0-or-later license.
 msgid ""
 msgstr ""
-"Project-Id-Version: ACS Courier for WooCommerce 0.1.0\n"
+"Project-Id-Version: ACS Courier for WooCommerce 0.2.0\n"
 "Report-Msgid-Bugs-To: https://github.com/Hikhakk/acs-courier-for-woocommerce/issues\n"
-"POT-Creation-Date: 2026-09-02 17:40+0000\n"
+"POT-Creation-Date: 2026-09-02 17:54+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Domain: acs-courier-for-woocommerce\n"
 
-#: src/Admin/OrderMetaBox.php:57
+#: src/Admin/OrderMetaBox.php:74
 #: src/Admin/Settings.php:47
 #: src/Admin/Settings.php:91
 msgid "ACS Courier"
@@ -20,15 +20,35 @@ msgstr ""
 msgid "ACS Courier for WooCommerce"
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:183
+#: src/Admin/OrderMetaBox.php:364
+msgid "ACS could not deliver: %s"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:369
+msgid "ACS delivered the shipment."
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:311
+msgid "ACS label could not be printed: %s"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:213
 msgid "ACS rejected the shipment: %s"
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:159
+#: src/Admin/OrderMetaBox.php:371
+msgid "ACS returned the shipment to the sender."
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:349
+msgid "ACS tracking lookup failed: %s"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:189
 msgid "ACS voucher created: %s"
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:171
+#: src/Admin/OrderMetaBox.php:201
 msgid "ACS voucher not created: %s"
 msgstr ""
 
@@ -48,7 +68,7 @@ msgstr ""
 msgid "Company password"
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:98
+#: src/Admin/OrderMetaBox.php:128
 msgid "Create ACS voucher"
 msgstr ""
 
@@ -64,12 +84,17 @@ msgstr ""
 msgid "Leave blank to keep the stored value."
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:117
+#: src/Admin/OrderMetaBox.php:147
+#: src/Admin/OrderMetaBox.php:267
 msgid "Order not found."
 msgstr ""
 
 #: src/Support/Requirements.php:63
 msgid "PHP %1$s or newer is required; this site runs %2$s."
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:118
+msgid "Print label"
 msgstr ""
 
 #: src/Admin/Settings.php:113
@@ -78,6 +103,10 @@ msgstr ""
 
 #: src/Admin/Settings.php:122
 msgid "Recipient"
+msgstr ""
+
+#: src/Admin/OrderMetaBox.php:120
+msgid "Refresh tracking"
 msgstr ""
 
 #: src/Admin/Settings.php:130
@@ -96,6 +125,10 @@ msgstr ""
 msgid "Set by the %s constant in wp-config.php."
 msgstr ""
 
+#: src/Admin/OrderMetaBox.php:112
+msgid "Status"
+msgstr ""
+
 #: src/Admin/Settings.php:106
 msgid "The ACS credit code for your account."
 msgstr ""
@@ -108,7 +141,7 @@ msgstr ""
 msgid "User password"
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:87
+#: src/Admin/OrderMetaBox.php:108
 msgid "Voucher"
 msgstr ""
 
@@ -128,6 +161,7 @@ msgstr ""
 msgid "WordPress %1$s or newer is required; this site runs %2$s."
 msgstr ""
 
-#: src/Admin/OrderMetaBox.php:111
+#: src/Admin/OrderMetaBox.php:141
+#: src/Admin/OrderMetaBox.php:261
 msgid "You are not allowed to do that."
 msgstr ""

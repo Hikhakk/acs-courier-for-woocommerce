@@ -7,7 +7,21 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Planned
-- Label printing, pickup list workflow, locker selection, rates, tracking, COD.
+- Smartpoint locker selection at checkout, shipping method with rates, cash on delivery.
+
+## [0.2.0] - 2026-09-02
+
+### Added
+- Label printing in thermal and A4 laser formats, streamed through an authenticated handler.
+- Pickup list workflow. Issuing the list is mandatory, since ACS does not recognise voucher
+  barcodes until it exists, and its vouchers can never be deleted afterwards.
+- Shipment tracking with status, checkpoint history and English non-delivery reasons.
+- Print label and Refresh tracking actions on the order screen.
+
+### Fixed
+- A returned parcel is no longer reported as delivered. ACS sets `delivery_flag` to 1 when a
+  returned shipment reaches the sender, so delivery now requires the status, the flag and the
+  absence of a return.
 
 ## [0.1.0] - 2026-09-02
 
