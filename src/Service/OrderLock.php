@@ -52,7 +52,7 @@ final class OrderLock {
 		};
 		$this->add    = $add ?? static function ( string $key, $value ): bool {
 			// add_option returns false when the key exists: an atomic INSERT.
-			return add_option( $key, $value, '', 'no' );
+			return add_option( $key, $value, '', false );
 		};
 		$this->delete = $delete ?? static function ( string $key ): void {
 			delete_option( $key );
