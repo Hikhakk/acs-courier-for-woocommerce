@@ -43,6 +43,11 @@ final class OrderLock
         return (bool) ($this->add)(self::PREFIX . $orderId, time());
     }
 
+    public function isLocked(int $orderId): bool
+    {
+        return false !== ($this->get)(self::PREFIX . $orderId);
+    }
+
     public function release(int $orderId): void
     {
         ($this->delete)(self::PREFIX . $orderId);

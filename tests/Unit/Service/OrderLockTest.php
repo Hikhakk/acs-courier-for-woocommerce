@@ -33,6 +33,18 @@ final class OrderLockTest extends TestCase
         self::assertTrue($lock->acquire(42), 'Released locks can be re-acquired.');
     }
 
+    public function test_it_reports_whether_an_order_is_locked(): void
+    {
+        $store = [];
+        $lock  = $this->lock($store);
+
+        self::assertFalse($lock->isLocked(7));
+        $lock->acquire(7);
+        self::assertTrue($lock->isLocked(7));
+        $lock->release(7);
+        self::assertFalse($lock->isLocked(7));
+    }
+
     public function test_locks_are_per_order(): void
     {
         $store = [];
