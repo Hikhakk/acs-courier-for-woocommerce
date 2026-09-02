@@ -8,81 +8,69 @@ declare(strict_types=1);
 
 namespace AcsCourier\Domain;
 
-final class Country
-{
-    public const GR = 'GR';
-    public const CY = 'CY';
+final class Country {
 
-    private string $code;
+	public const GR = 'GR';
+	public const CY = 'CY';
 
-    private function __construct(string $code)
-    {
-        $this->code = $code;
-    }
+	private string $code;
 
-    public static function greece(): self
-    {
-        return new self(self::GR);
-    }
+	private function __construct( string $code ) {
+		$this->code = $code;
+	}
 
-    public static function cyprus(): self
-    {
-        return new self(self::CY);
-    }
+	public static function greece(): self {
+		return new self( self::GR );
+	}
 
-    public static function fromCode(string $code): self
-    {
-        $normalised = strtoupper(trim($code));
+	public static function cyprus(): self {
+		return new self( self::CY );
+	}
 
-        if (self::GR === $normalised) {
-            return self::greece();
-        }
-        if (self::CY === $normalised) {
-            return self::cyprus();
-        }
+	public static function fromCode( string $code ): self {
+		$normalised = strtoupper( trim( $code ) );
 
-        throw new \InvalidArgumentException(
-            'ACS supports voucher creation for GR and CY only; received "' . $code . '".'
-        );
-    }
+		if ( self::GR === $normalised ) {
+			return self::greece();
+		}
+		if ( self::CY === $normalised ) {
+			return self::cyprus();
+		}
 
-    public static function isSupported(string $code): bool
-    {
-        return in_array(strtoupper(trim($code)), [self::GR, self::CY], true);
-    }
+		throw new \InvalidArgumentException(
+			'ACS supports voucher creation for GR and CY only; received "' . $code . '".'
+		);
+	}
 
-    public function code(): string
-    {
-        return $this->code;
-    }
+	public static function isSupported( string $code ): bool {
+		return in_array( strtoupper( trim( $code ) ), array( self::GR, self::CY ), true );
+	}
 
-    public function isCyprus(): bool
-    {
-        return self::CY === $this->code;
-    }
+	public function code(): string {
+		return $this->code;
+	}
 
-    public function isGreece(): bool
-    {
-        return self::GR === $this->code;
-    }
+	public function isCyprus(): bool {
+		return self::CY === $this->code;
+	}
 
-    public function zipLength(): int
-    {
-        return $this->isCyprus() ? 4 : 5;
-    }
+	public function isGreece(): bool {
+		return self::GR === $this->code;
+	}
 
-    public function isValidZip(string $zip): bool
-    {
-        return 1 === preg_match('/^\d{' . $this->zipLength() . '}$/', trim($zip));
-    }
+	public function zipLength(): int {
+		return $this->isCyprus() ? 4 : 5;
+	}
 
-    public function requiresContentType(): bool
-    {
-        return $this->isCyprus();
-    }
+	public function isValidZip( string $zip ): bool {
+		return 1 === preg_match( '/^\d{' . $this->zipLength() . '}$/', trim( $zip ) );
+	}
 
-    public function supportsLivePricing(): bool
-    {
-        return $this->isGreece();
-    }
+	public function requiresContentType(): bool {
+		return $this->isCyprus();
+	}
+
+	public function supportsLivePricing(): bool {
+		return $this->isGreece();
+	}
 }

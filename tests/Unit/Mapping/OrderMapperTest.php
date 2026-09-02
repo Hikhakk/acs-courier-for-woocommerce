@@ -8,131 +8,129 @@ use AcsCourier\Mapping\OrderData;
 use AcsCourier\Mapping\OrderMapper;
 use PHPUnit\Framework\TestCase;
 
-final class OrderMapperTest extends TestCase
-{
-    private function order(array $overrides = []): OrderData
-    {
-        $o = new OrderData();
-        $o->id          = 123;
-        $o->name        = 'Γιώργος Παπαδόπουλος';
-        $o->address1    = 'ΑΣΚΛΗΠΙΟΥ 25';
-        $o->city        = 'ΛΕΥΚΩΣΙΑ';
-        $o->postcode    = '1010';
-        $o->countryCode = 'CY';
-        $o->phone       = '99000000';
-        $o->email       = 'buyer@example.com';
-        $o->weight      = 1.5;
-        $o->weightUnit  = 'kg';
-        $o->itemCount   = 1;
+final class OrderMapperTest extends TestCase {
 
-        foreach ($overrides as $k => $v) { $o->$k = $v; }
-        return $o;
-    }
+	private function order( array $overrides = array() ): OrderData {
+		$o              = new OrderData();
+		$o->id          = 123;
+		$o->name        = 'Γιώργος Παπαδόπουλος';
+		$o->address1    = 'ΑΣΚΛΗΠΙΟΥ 25';
+		$o->city        = 'ΛΕΥΚΩΣΙΑ';
+		$o->postcode    = '1010';
+		$o->countryCode = 'CY';
+		$o->phone       = '99000000';
+		$o->email       = 'buyer@example.com';
+		$o->weight      = 1.5;
+		$o->weightUnit  = 'kg';
+		$o->itemCount   = 1;
 
-    private function settings(array $overrides = []): MapperSettings
-    {
-        $s = new MapperSettings();
-        $s->sender               = 'ESHOP';
-        $s->billingCode          = '2XX000000';
-        $s->chargeType           = 2;
-        $s->defaultContentTypeId = 6;
-        $s->language             = 'EN';
-        $s->pickupDate           = '2026-09-03';
+		foreach ( $overrides as $k => $v ) {
+			$o->$k = $v; }
+		return $o;
+	}
 
-        foreach ($overrides as $k => $v) { $s->$k = $v; }
-        return $s;
-    }
+	private function settings( array $overrides = array() ): MapperSettings {
+		$s                       = new MapperSettings();
+		$s->sender               = 'ESHOP';
+		$s->billingCode          = '2XX000000';
+		$s->chargeType           = 2;
+		$s->defaultContentTypeId = 6;
+		$s->language             = 'EN';
+		$s->pickupDate           = '2026-09-03';
 
-    public function test_it_splits_the_street_number_out_of_address_line_one(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(), $this->settings());
-        self::assertSame('ΑΣΚΛΗΠΙΟΥ', $shipment->recipientAddress);
-        self::assertSame('25', $shipment->recipientAddressNumber);
-    }
+		foreach ( $overrides as $k => $v ) {
+			$s->$k = $v; }
+		return $s;
+	}
 
-    public function test_the_city_becomes_the_region_not_part_of_the_address(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(), $this->settings());
-        self::assertSame('ΛΕΥΚΩΣΙΑ', $shipment->recipientRegion);
-        self::assertStringNotContainsString('ΛΕΥΚΩΣΙΑ', $shipment->recipientAddress);
-    }
+	public function test_it_splits_the_street_number_out_of_address_line_one(): void {
+		$shipment = OrderMapper::toShipment( $this->order(), $this->settings() );
+		self::assertSame( 'ΑΣΚΛΗΠΙΟΥ', $shipment->recipientAddress );
+		self::assertSame( '25', $shipment->recipientAddressNumber );
+	}
 
-    /** @dataProvider weightUnitProvider */
-    public function test_it_converts_store_weight_units_to_kilograms(float $input, string $unit, float $expectedKg): void
-    {
-        $shipment = OrderMapper::toShipment(
-            $this->order(['weight' => $input, 'weightUnit' => $unit]),
-            $this->settings()
-        );
-        self::assertEqualsWithDelta($expectedKg, $shipment->weight->kilograms(), 0.001);
-    }
+	public function test_the_city_becomes_the_region_not_part_of_the_address(): void {
+		$shipment = OrderMapper::toShipment( $this->order(), $this->settings() );
+		self::assertSame( 'ΛΕΥΚΩΣΙΑ', $shipment->recipientRegion );
+		self::assertStringNotContainsString( 'ΛΕΥΚΩΣΙΑ', $shipment->recipientAddress );
+	}
 
-    public static function weightUnitProvider(): array
-    {
-        return [
-            'kilograms pass through' => [2.0, 'kg', 2.0],
-            'grams'                  => [1500.0, 'g', 1.5],
-            'pounds'                 => [2.0, 'lbs', 0.907185],
-            'ounces'                 => [16.0, 'oz', 0.453592],
-        ];
-    }
+	/** @dataProvider weightUnitProvider */
+	public function test_it_converts_store_weight_units_to_kilograms( float $input, string $unit, float $expectedKg ): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order(
+				array(
+					'weight'     => $input,
+					'weightUnit' => $unit,
+				)
+			),
+			$this->settings()
+		);
+		self::assertEqualsWithDelta( $expectedKg, $shipment->weight->kilograms(), 0.001 );
+	}
 
-    public function test_a_zero_weight_order_still_meets_the_acs_floor(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(['weight' => 0.0]), $this->settings());
-        self::assertSame(0.5, $shipment->weight->forAcs());
-    }
+	public static function weightUnitProvider(): array {
+		return array(
+			'kilograms pass through' => array( 2.0, 'kg', 2.0 ),
+			'grams'                  => array( 1500.0, 'g', 1.5 ),
+			'pounds'                 => array( 2.0, 'lbs', 0.907185 ),
+			'ounces'                 => array( 16.0, 'oz', 0.453592 ),
+		);
+	}
 
-    public function test_the_order_id_is_carried_as_a_reference_key(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(), $this->settings());
-        self::assertSame('123', $shipment->referenceKey1);
-    }
+	public function test_a_zero_weight_order_still_meets_the_acs_floor(): void {
+		$shipment = OrderMapper::toShipment( $this->order( array( 'weight' => 0.0 ) ), $this->settings() );
+		self::assertSame( 0.5, $shipment->weight->forAcs() );
+	}
 
-    public function test_cyprus_orders_receive_the_default_content_type(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(), $this->settings());
-        self::assertSame(6, $shipment->contentTypeId);
-    }
+	public function test_the_order_id_is_carried_as_a_reference_key(): void {
+		$shipment = OrderMapper::toShipment( $this->order(), $this->settings() );
+		self::assertSame( '123', $shipment->referenceKey1 );
+	}
 
-    public function test_greek_orders_do_not_need_a_content_type(): void
-    {
-        $shipment = OrderMapper::toShipment(
-            $this->order(['countryCode' => 'GR', 'postcode' => '17778']),
-            $this->settings(['defaultContentTypeId' => null])
-        );
-        self::assertNull($shipment->contentTypeId);
-        self::assertTrue($shipment->country->isGreece());
-    }
+	public function test_cyprus_orders_receive_the_default_content_type(): void {
+		$shipment = OrderMapper::toShipment( $this->order(), $this->settings() );
+		self::assertSame( 6, $shipment->contentTypeId );
+	}
 
-    public function test_the_customer_note_becomes_delivery_notes(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(['customerNote' => 'Ring twice']), $this->settings());
-        self::assertSame('Ring twice', $shipment->deliveryNotes);
-    }
+	public function test_greek_orders_do_not_need_a_content_type(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order(
+				array(
+					'countryCode' => 'GR',
+					'postcode'    => '17778',
+				)
+			),
+			$this->settings( array( 'defaultContentTypeId' => null ) )
+		);
+		self::assertNull( $shipment->contentTypeId );
+		self::assertTrue( $shipment->country->isGreece() );
+	}
 
-    public function test_an_unsupported_country_is_rejected_early(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        OrderMapper::toShipment($this->order(['countryCode' => 'DE']), $this->settings());
-    }
+	public function test_the_customer_note_becomes_delivery_notes(): void {
+		$shipment = OrderMapper::toShipment( $this->order( array( 'customerNote' => 'Ring twice' ) ), $this->settings() );
+		self::assertSame( 'Ring twice', $shipment->deliveryNotes );
+	}
 
-    public function test_address_line_two_is_carried_as_a_delivery_note(): void
-    {
-        $shipment = OrderMapper::toShipment(
-            $this->order(['address2' => 'Flat 3']),
-            $this->settings()
-        );
-        self::assertStringContainsString('Flat 3', $shipment->deliveryNotes);
-    }
+	public function test_an_unsupported_country_is_rejected_early(): void {
+		$this->expectException( \InvalidArgumentException::class );
+		OrderMapper::toShipment( $this->order( array( 'countryCode' => 'DE' ) ), $this->settings() );
+	}
 
-    /**
-     * ACS's Item_Quantity means parcels, not units ordered. Sending units would
-     * silently invalidate locker delivery, which rejects multi-piece shipments.
-     */
-    public function test_item_quantity_is_parcels_not_units_ordered(): void
-    {
-        $shipment = OrderMapper::toShipment($this->order(['itemCount' => 5]), $this->settings());
-        self::assertSame(1, $shipment->itemQuantity);
-    }
+	public function test_address_line_two_is_carried_as_a_delivery_note(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order( array( 'address2' => 'Flat 3' ) ),
+			$this->settings()
+		);
+		self::assertStringContainsString( 'Flat 3', $shipment->deliveryNotes );
+	}
+
+	/**
+	 * ACS's Item_Quantity means parcels, not units ordered. Sending units would
+	 * silently invalidate locker delivery, which rejects multi-piece shipments.
+	 */
+	public function test_item_quantity_is_parcels_not_units_ordered(): void {
+		$shipment = OrderMapper::toShipment( $this->order( array( 'itemCount' => 5 ) ), $this->settings() );
+		self::assertSame( 1, $shipment->itemQuantity );
+	}
 }

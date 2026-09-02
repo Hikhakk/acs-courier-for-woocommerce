@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 namespace AcsCourier\Api;
 
-interface Transport
-{
-    /**
-     * @param array<string,mixed>  $payload
-     * @param array<string,string> $headers
-     * @throws TransportFailure On network-level failure.
-     */
-    public function post(string $url, array $payload, array $headers): TransportResponse;
+interface Transport {
+
+	/**
+	 * @param array<string,mixed>  $payload
+	 * @param array<string,string> $headers
+	 * @throws TransportFailure On network-level failure.
+	 */
+	public function post( string $url, array $payload, array $headers ): TransportResponse;
 }

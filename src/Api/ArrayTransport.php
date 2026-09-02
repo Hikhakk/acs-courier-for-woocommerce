@@ -10,34 +10,35 @@ declare(strict_types=1);
 
 namespace AcsCourier\Api;
 
-final class ArrayTransport implements Transport
-{
-    /** @var list<TransportResponse> */
-    private array $queue;
+final class ArrayTransport implements Transport {
 
-    /** @var list<array{url:string,payload:array<string,mixed>,headers:array<string,string>}> */
-    private array $requests = [];
+	/** @var list<TransportResponse> */
+	private array $queue;
 
-    /** @param list<TransportResponse> $queue */
-    public function __construct(array $queue)
-    {
-        $this->queue = $queue;
-    }
+	/** @var list<array{url:string,payload:array<string,mixed>,headers:array<string,string>}> */
+	private array $requests = array();
 
-    public function post(string $url, array $payload, array $headers): TransportResponse
-    {
-        $this->requests[] = ['url' => $url, 'payload' => $payload, 'headers' => $headers];
+	/** @param list<TransportResponse> $queue */
+	public function __construct( array $queue ) {
+		$this->queue = $queue;
+	}
 
-        if ($this->queue === []) {
-            throw new \RuntimeException('ArrayTransport queue exhausted.');
-        }
+	public function post( string $url, array $payload, array $headers ): TransportResponse {
+		$this->requests[] = array(
+			'url'     => $url,
+			'payload' => $payload,
+			'headers' => $headers,
+		);
 
-        return array_shift($this->queue);
-    }
+		if ( $this->queue === array() ) {
+			throw new \RuntimeException( 'ArrayTransport queue exhausted.' );
+		}
 
-    /** @return list<array{url:string,payload:array<string,mixed>,headers:array<string,string>}> */
-    public function requests(): array
-    {
-        return $this->requests;
-    }
+		return array_shift( $this->queue );
+	}
+
+	/** @return list<array{url:string,payload:array<string,mixed>,headers:array<string,string>}> */
+	public function requests(): array {
+		return $this->requests;
+	}
 }

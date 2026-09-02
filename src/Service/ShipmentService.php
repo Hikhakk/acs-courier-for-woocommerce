@@ -13,42 +13,40 @@ use AcsCourier\Api\RetryingClient;
 use AcsCourier\Domain\Shipment;
 use AcsCourier\Mapping\FieldMap;
 
-final class ShipmentService
-{
-    public const ALIAS_CREATE = 'ACS_Create_Voucher';
+final class ShipmentService {
 
-    private RetryingClient $client;
+	public const ALIAS_CREATE = 'ACS_Create_Voucher';
 
-    public function __construct(RetryingClient $client)
-    {
-        $this->client = $client;
-    }
+	private RetryingClient $client;
 
-    /**
-     * @throws \InvalidArgumentException When the shipment is locally invalid.
-     * @throws AcsException When ACS rejects it.
-     */
-    public function create(Shipment $shipment): string
-    {
-        $problems = FieldMap::validate($shipment);
-        if ([] !== $problems) {
-            throw new \InvalidArgumentException(implode(' ', $problems));
-        }
+	public function __construct( RetryingClient $client ) {
+		$this->client = $client;
+	}
 
-        $response = $this->client->call(self::ALIAS_CREATE, FieldMap::toCreateVoucherParams($shipment));
+	/**
+	 * @throws \InvalidArgumentException When the shipment is locally invalid.
+	 * @throws AcsException When ACS rejects it.
+	 */
+	public function create( Shipment $shipment ): string {
+		$problems = FieldMap::validate( $shipment );
+		if ( array() !== $problems ) {
+			throw new \InvalidArgumentException( implode( ' ', $problems ) );
+		}
 
-        $values  = $response['ACSValueOutput'] ?? [];
-        $voucher = is_array($values) && isset($values[0]['Voucher_No'])
-            ? trim((string) $values[0]['Voucher_No'])
-            : '';
+		$response = $this->client->call( self::ALIAS_CREATE, FieldMap::toCreateVoucherParams( $shipment ) );
 
-        if ('' === $voucher) {
-            throw AcsException::business(
-                'ACS accepted the request but returned no voucher number.',
-                self::ALIAS_CREATE
-            );
-        }
+		$values  = $response['ACSValueOutput'] ?? array();
+		$voucher = is_array( $values ) && isset( $values[0]['Voucher_No'] )
+			? trim( (string) $values[0]['Voucher_No'] )
+			: '';
 
-        return $voucher;
-    }
+		if ( '' === $voucher ) {
+			throw AcsException::business(
+				'ACS accepted the request but returned no voucher number.',
+				self::ALIAS_CREATE
+			);
+		}
+
+		return $voucher;
+	}
 }

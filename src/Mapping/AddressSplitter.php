@@ -10,22 +10,30 @@ declare(strict_types=1);
 
 namespace AcsCourier\Mapping;
 
-final class AddressSplitter
-{
-    /** @return array{street:string,number:string} */
-    public static function split(string $address): array
-    {
-        $normalised = trim((string) preg_replace('/\s+/u', ' ', $address));
+final class AddressSplitter {
 
-        if ('' === $normalised) {
-            return ['street' => '', 'number' => ''];
-        }
+	/** @return array{street:string,number:string} */
+	public static function split( string $address ): array {
+		$normalised = trim( (string) preg_replace( '/\s+/u', ' ', $address ) );
 
-        // A trailing token starting with a digit is the street number: 25, 12Α, 5-7, 45B.
-        if (1 === preg_match('/^(.*?)\s+(\d[\d\-\/]*[\p{L}]?)$/u', $normalised, $m)) {
-            return ['street' => trim($m[1]), 'number' => $m[2]];
-        }
+		if ( '' === $normalised ) {
+			return array(
+				'street' => '',
+				'number' => '',
+			);
+		}
 
-        return ['street' => $normalised, 'number' => ''];
-    }
+		// A trailing token starting with a digit is the street number: 25, 12Α, 5-7, 45B.
+		if ( 1 === preg_match( '/^(.*?)\s+(\d[\d\-\/]*[\p{L}]?)$/u', $normalised, $m ) ) {
+			return array(
+				'street' => trim( $m[1] ),
+				'number' => $m[2],
+			);
+		}
+
+		return array(
+			'street' => $normalised,
+			'number' => '',
+		);
+	}
 }

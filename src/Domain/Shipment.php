@@ -10,52 +10,51 @@ declare(strict_types=1);
 
 namespace AcsCourier\Domain;
 
-final class Shipment
-{
-    public string $recipientName = '';
-    public string $recipientAddress = '';
-    public string $recipientAddressNumber = '';
-    public string $recipientZip = '';
-    public string $recipientRegion = '';
-    public string $recipientPhone = '';
-    public string $recipientCellPhone = '';
-    public string $recipientEmail = '';
-    public string $recipientCompany = '';
+final class Shipment {
 
-    public ?Country $country = null;
-    public ?Weight $weight = null;
+	public string $recipientName          = '';
+	public string $recipientAddress       = '';
+	public string $recipientAddressNumber = '';
+	public string $recipientZip           = '';
+	public string $recipientRegion        = '';
+	public string $recipientPhone         = '';
+	public string $recipientCellPhone     = '';
+	public string $recipientEmail         = '';
+	public string $recipientCompany       = '';
 
-    public int $itemQuantity = 1;
-    public string $pickupDate = '';
-    public string $sender = '';
-    public string $billingCode = '';
+	public ?Country $country = null;
+	public ?Weight $weight   = null;
 
-    /** 2 = charge sender, 4 = charge recipient. */
-    public int $chargeType = 2;
+	public int $itemQuantity   = 1;
+	public string $pickupDate  = '';
+	public string $sender      = '';
+	public string $billingCode = '';
 
-    /** @var list<string> ACS product codes, e.g. REC, SAT, COD. */
-    public array $deliveryProducts = [];
+	/** 2 = charge sender, 4 = charge recipient. */
+	public int $chargeType = 2;
 
-    public ?int $contentTypeId = null;
+	/** @var list<string> ACS product codes, e.g. REC, SAT, COD. */
+	public array $deliveryProducts = array();
 
-    public ?string $stationDestination = null;
-    public ?int $stationBranchDestination = null;
+	public ?int $contentTypeId = null;
 
-    public ?float $codAmount = null;
-    public ?int $codPaymentWay = null;
-    public ?float $insuranceAmount = null;
+	public ?string $stationDestination    = null;
+	public ?int $stationBranchDestination = null;
 
-    public ?float $lengthCm = null;
-    public ?float $widthCm = null;
-    public ?float $heightCm = null;
+	public ?float $codAmount       = null;
+	public ?int $codPaymentWay     = null;
+	public ?float $insuranceAmount = null;
 
-    public string $deliveryNotes = '';
-    public string $referenceKey1 = '';
-    public string $referenceKey2 = '';
-    public string $language = 'EN';
+	public ?float $lengthCm = null;
+	public ?float $widthCm  = null;
+	public ?float $heightCm = null;
 
-    public function isToPickupPoint(): bool
-    {
-        return null !== $this->stationDestination && null !== $this->stationBranchDestination;
-    }
+	public string $deliveryNotes = '';
+	public string $referenceKey1 = '';
+	public string $referenceKey2 = '';
+	public string $language      = 'EN';
+
+	public function isToPickupPoint(): bool {
+		return null !== $this->stationDestination && null !== $this->stationBranchDestination;
+	}
 }

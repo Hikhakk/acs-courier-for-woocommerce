@@ -8,14 +8,13 @@ declare(strict_types=1);
 
 namespace AcsCourier\Api;
 
-final class TransportResponse
-{
-    public int $status;
-    public string $body;
+final class TransportResponse {
 
-    public function __construct(int $status, string $body)
-    {
-        $this->status = $status;
-        $this->body   = $body;
-    }
+	public int $status;
+	public string $body;
+
+	public function __construct( int $status, string $body ) {
+		$this->status = $status;
+		$this->body   = $body;
+	}
 }

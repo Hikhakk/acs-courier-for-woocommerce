@@ -16,76 +16,73 @@ use AcsCourier\Domain\Country;
 use AcsCourier\Domain\Shipment;
 use AcsCourier\Domain\Weight;
 
-final class OrderMapper
-{
-    /** Multipliers to kilograms, keyed by the WooCommerce weight unit. */
-    private const TO_KILOGRAMS = [
-        'kg'  => 1.0,
-        'g'   => 0.001,
-        'lbs' => 0.45359237,
-        'oz'  => 0.028349523125,
-    ];
+final class OrderMapper {
 
-    public static function toShipment(OrderData $order, MapperSettings $settings): Shipment
-    {
-        // Throws for anything ACS cannot ship to, before we build anything else.
-        $country = Country::fromCode($order->countryCode);
+	/** Multipliers to kilograms, keyed by the WooCommerce weight unit. */
+	private const TO_KILOGRAMS = array(
+		'kg'  => 1.0,
+		'g'   => 0.001,
+		'lbs' => 0.45359237,
+		'oz'  => 0.028349523125,
+	);
 
-        $split = AddressSplitter::split($order->address1);
+	public static function toShipment( OrderData $order, MapperSettings $settings ): Shipment {
+		// Throws for anything ACS cannot ship to, before we build anything else.
+		$country = Country::fromCode( $order->countryCode );
 
-        $shipment = new Shipment();
-        $shipment->recipientName          = trim($order->name);
-        $shipment->recipientCompany       = trim($order->company);
-        $shipment->recipientAddress       = $split['street'];
-        $shipment->recipientAddressNumber = $split['number'];
-        $shipment->recipientZip           = trim($order->postcode);
-        // ACS rejects the region inside the address, so the city travels separately.
-        $shipment->recipientRegion        = trim($order->city);
-        $shipment->recipientPhone         = trim($order->phone);
-        $shipment->recipientCellPhone     = trim($order->phone);
-        $shipment->recipientEmail         = trim($order->email);
-        $shipment->country                = $country;
-        $shipment->weight                 = self::weight($order);
-        // ACS counts parcels here, not units ordered. One parcel per order for now;
-        // sending units would silently invalidate locker delivery.
-        $shipment->itemQuantity           = 1;
-        $shipment->pickupDate             = $settings->pickupDate;
-        $shipment->sender                 = $settings->sender;
-        $shipment->billingCode            = $settings->billingCode;
-        $shipment->chargeType             = $settings->chargeType;
-        $shipment->language               = $settings->language;
-        $shipment->referenceKey1          = (string) $order->id;
-        $shipment->deliveryNotes          = self::notes($order);
+		$split = AddressSplitter::split( $order->address1 );
 
-        if ($country->requiresContentType()) {
-            $shipment->contentTypeId = $settings->defaultContentTypeId;
-        }
+		$shipment                         = new Shipment();
+		$shipment->recipientName          = trim( $order->name );
+		$shipment->recipientCompany       = trim( $order->company );
+		$shipment->recipientAddress       = $split['street'];
+		$shipment->recipientAddressNumber = $split['number'];
+		$shipment->recipientZip           = trim( $order->postcode );
+		// ACS rejects the region inside the address, so the city travels separately.
+		$shipment->recipientRegion    = trim( $order->city );
+		$shipment->recipientPhone     = trim( $order->phone );
+		$shipment->recipientCellPhone = trim( $order->phone );
+		$shipment->recipientEmail     = trim( $order->email );
+		$shipment->country            = $country;
+		$shipment->weight             = self::weight( $order );
+		// ACS counts parcels here, not units ordered. One parcel per order for now;
+		// sending units would silently invalidate locker delivery.
+		$shipment->itemQuantity  = 1;
+		$shipment->pickupDate    = $settings->pickupDate;
+		$shipment->sender        = $settings->sender;
+		$shipment->billingCode   = $settings->billingCode;
+		$shipment->chargeType    = $settings->chargeType;
+		$shipment->language      = $settings->language;
+		$shipment->referenceKey1 = (string) $order->id;
+		$shipment->deliveryNotes = self::notes( $order );
 
-        return $shipment;
-    }
+		if ( $country->requiresContentType() ) {
+			$shipment->contentTypeId = $settings->defaultContentTypeId;
+		}
 
-    private static function weight(OrderData $order): Weight
-    {
-        $unit       = strtolower(trim($order->weightUnit));
-        $multiplier = self::TO_KILOGRAMS[$unit] ?? 1.0;
+		return $shipment;
+	}
 
-        return Weight::fromKilograms($order->weight * $multiplier);
-    }
+	private static function weight( OrderData $order ): Weight {
+		$unit       = strtolower( trim( $order->weightUnit ) );
+		$multiplier = self::TO_KILOGRAMS[ $unit ] ?? 1.0;
 
-    /**
-     * ACS has no second address line, so anything there must reach the courier
-     * as a delivery note rather than being silently dropped.
-     */
-    private static function notes(OrderData $order): string
-    {
-        $parts = [];
-        if ('' !== trim($order->address2)) {
-            $parts[] = trim($order->address2);
-        }
-        if ('' !== trim($order->customerNote)) {
-            $parts[] = trim($order->customerNote);
-        }
+		return Weight::fromKilograms( $order->weight * $multiplier );
+	}
 
-        return implode(' — ', $parts);
-    }
+	/**
+	 * ACS has no second address line, so anything there must reach the courier
+	 * as a delivery note rather than being silently dropped.
+	 */
+	private static function notes( OrderData $order ): string {
+		$parts = array();
+		if ( '' !== trim( $order->address2 ) ) {
+			$parts[] = trim( $order->address2 );
+		}
+		if ( '' !== trim( $order->customerNote ) ) {
+			$parts[] = trim( $order->customerNote );
+		}
+
+		return implode( ' — ', $parts );
+	}
 }

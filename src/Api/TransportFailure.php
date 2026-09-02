@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 namespace AcsCourier\Api;
 
-final class TransportFailure extends \RuntimeException
-{
+final class TransportFailure extends \RuntimeException {
+
 }
