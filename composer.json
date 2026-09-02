@@ -1,0 +1,27 @@
+{
+    "name": "kdvassiliou/acs-courier-for-woocommerce",
+    "description": "ACS Courier shipping and tracking for WooCommerce (Greece & Cyprus).",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^1.11"
+    },
+    "autoload": {
+        "psr-4": { "AcsCourier\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "AcsCourier\\Tests\\": "tests/" }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse"
+    }
+}
