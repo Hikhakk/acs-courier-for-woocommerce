@@ -96,7 +96,7 @@ issued — after that, deletion is impossible.
 - [x] Checkout locker selector
 - [x] Rate resolution: live Greek pricing, Cypriot rate table, fallback when ACS is down
 - [x] WooCommerce shipping method
-- [ ] Cash on delivery
+- [x] Cash on delivery
 - [ ] Map view for pickup point selection
 
 ## Contributing

@@ -141,6 +141,33 @@ final class OrderMapperTest extends TestCase {
 		self::assertFalse( $shipment->isToPickupPoint() );
 	}
 
+	public function test_cash_on_delivery_populates_the_acs_fields(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order( array( 'codAmount' => 50.5 ) ),
+			$this->settings()
+		);
+
+		self::assertSame( 50.5, $shipment->codAmount );
+		self::assertSame( 0, $shipment->codPaymentWay );
+		self::assertContains( 'COD', $shipment->deliveryProducts );
+	}
+
+	public function test_a_prepaid_order_carries_no_cod(): void {
+		$shipment = OrderMapper::toShipment( $this->order(), $this->settings() );
+
+		self::assertNull( $shipment->codAmount );
+		self::assertNotContains( 'COD', $shipment->deliveryProducts );
+	}
+
+	public function test_a_zero_cod_amount_is_treated_as_prepaid(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order( array( 'codAmount' => 0.0 ) ),
+			$this->settings()
+		);
+
+		self::assertNull( $shipment->codAmount );
+	}
+
 	public function test_an_unsupported_country_is_rejected_early(): void {
 		$this->expectException( \InvalidArgumentException::class );
 		OrderMapper::toShipment( $this->order( array( 'countryCode' => 'DE' ) ), $this->settings() );

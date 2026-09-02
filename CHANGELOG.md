@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-02
+
+### Added
+- Cash on delivery. The amount, collection method and the ACS `COD` product are set from
+  the order when an unpaid COD gateway was used, filterable via `acs_wc_cod_gateways`.
+- Validation that COD to a pickup point carries a recipient email, which ACS requires.
+- Setting for whether COD is collected as cash or cheque.
+
 ## [0.3.0] - 2026-09-02
 
 ### Added
