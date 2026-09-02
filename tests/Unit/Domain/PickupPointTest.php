@@ -24,7 +24,8 @@ final class PickupPointTest extends TestCase {
 					'ACS_SHOP_WORKING_HOURS' => '08:00-20:00',
 				),
 				$o
-			)
+			),
+			'CY'
 		);
 	}
 
@@ -74,6 +75,21 @@ final class PickupPointTest extends TestCase {
 			)
 		);
 		self::assertNull( $p->distanceKm( 35.0, 33.0 ) );
+	}
+
+	public function test_the_requested_country_wins_over_the_numeric_id_acs_returns(): void {
+		// ACS returns a numeric ACS_SHOP_COUNTRY_ID in responses, so the country
+		// the caller asked for is authoritative.
+		$p = PickupPoint::fromAcsRow(
+			array(
+				'ACS_SHOP_STATION_ID' => 'NI',
+				'ACS_SHOP_BRANCH_ID'  => 503,
+				'ACS_SHOP_COUNTRY_ID' => 2,
+			),
+			'CY'
+		);
+
+		self::assertSame( 'CY', $p->country() );
 	}
 
 	public function test_it_exposes_its_coordinates(): void {

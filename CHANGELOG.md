@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-09-02
+
+### Fixed
+Found by installing the plugin on a real WordPress 7.1 + WooCommerce 11 stack, which
+the earlier releases had not been.
+
+- Pickup points were never stored. ACS's *response* returns a numeric
+  `ACS_SHOP_COUNTRY_ID` (1 = Greece) even though the request parameter of the same name
+  takes `GR` or `CY`, so every row was filed under `'2'` and no query could find it. The
+  requested country is now authoritative. 1,776 points now sync correctly.
+- `sync()` counted rows it attempted rather than rows actually written, hiding the above.
+- Action Scheduler was called during `plugins_loaded`, before its data store exists,
+  raising a `_doing_it_wrong` notice on every load. Scheduling now happens on `init`.
+- Uninstall left the pickup point table and its schema-version option behind, and did not
+  cancel the scheduled sync.
+
 ## [0.4.0] - 2026-09-02
 
 ### Fixed

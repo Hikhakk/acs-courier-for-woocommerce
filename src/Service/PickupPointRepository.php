@@ -81,13 +81,13 @@ final class PickupPointRepository {
 					continue;
 				}
 				try {
-					$point = PickupPoint::fromAcsRow( $row );
+					$point = PickupPoint::fromAcsRow( $row, $country );
 				} catch ( \InvalidArgumentException $e ) {
 					// A malformed row must not abort the whole sync.
 					continue;
 				}
 
-				$wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom table, no core API exists.
+				$written = $wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Custom table, no core API exists.
 					$table,
 					array(
 						'point_id'   => $point->id(),
@@ -104,7 +104,11 @@ final class PickupPointRepository {
 						'updated_at' => $now,
 					)
 				);
-				++$count;
+
+				// Count what was actually stored, not what was attempted.
+				if ( false !== $written ) {
+					++$count;
+				}
 			}//end foreach
 		}//end foreach
 

@@ -13,6 +13,7 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 global $wpdb;
 
 delete_option( 'acs_wc_settings' );
+delete_option( 'acs_wc_db_version' );
 
 // Any lock left behind by an interrupted request.
 $acs_wc_locks = $wpdb->get_col(
@@ -30,4 +31,14 @@ if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $acs_wc_orders_meta 
 	// A table name cannot be a prepared placeholder; it is built from $wpdb->prefix, which is trusted.
 	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$wpdb->query( "DELETE FROM {$acs_wc_orders_meta} WHERE meta_key IN ('_acs_wc_voucher_no', '_acs_wc_created_at')" );
+}
+
+// The plugin's own table. Uninstall means uninstall.
+$acs_wc_points_table = $wpdb->prefix . 'acs_wc_pickup_points';
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+$wpdb->query( "DROP TABLE IF EXISTS {$acs_wc_points_table}" );
+
+// Any scheduled sync still queued.
+if ( function_exists( 'as_unschedule_all_actions' ) ) {
+	as_unschedule_all_actions( 'acs_wc_sync_pickup_points' );
 }

@@ -136,11 +136,16 @@ final class PickupPoint {
 	/**
 	 * Builds a point from an ACS_Stations row.
 	 *
-	 * @param array<string,mixed> $row Row as ACS returned it.
+	 * ACS's response returns a *numeric* ACS_SHOP_COUNTRY_ID (1 = Greece), even
+	 * though the request parameter of the same name takes GR or CY. The caller
+	 * therefore passes the country it asked for, which is authoritative.
+	 *
+	 * @param array<string,mixed> $row     Row as ACS returned it.
+	 * @param string              $country ISO country code that was requested.
 	 * @return self
 	 * @throws \InvalidArgumentException If the row has no station code.
 	 */
-	public static function fromAcsRow( array $row ): self {
+	public static function fromAcsRow( array $row, string $country = '' ): self {
 		$station = isset( $row['ACS_SHOP_STATION_ID'] ) ? trim( (string) $row['ACS_SHOP_STATION_ID'] ) : '';
 		if ( '' === $station ) {
 			throw new \InvalidArgumentException( 'An ACS pickup point row must carry a station code.' );
@@ -159,7 +164,7 @@ final class PickupPoint {
 			isset( $row['ACS_SHOP_STATION_DESCR'] ) ? trim( (string) $row['ACS_SHOP_STATION_DESCR'] ) : '',
 			isset( $row['ACS_SHOP_ADDRESS'] ) ? trim( (string) $row['ACS_SHOP_ADDRESS'] ) : '',
 			isset( $row['ACS_SHOP_ZIPCODE'] ) ? trim( (string) $row['ACS_SHOP_ZIPCODE'] ) : '',
-			isset( $row['ACS_SHOP_COUNTRY_ID'] ) ? strtoupper( trim( (string) $row['ACS_SHOP_COUNTRY_ID'] ) ) : '',
+			strtoupper( trim( $country ) ),
 			isset( $row['ACS_SHOP_KIND'] ) ? (int) $row['ACS_SHOP_KIND'] : 0,
 			isset( $row['ACS_SHOP_WORKING_HOURS'] ) ? trim( (string) $row['ACS_SHOP_WORKING_HOURS'] ) : '',
 			$number( $row['ACS_SHOP_LAT'] ?? null ),

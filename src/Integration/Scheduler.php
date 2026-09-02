@@ -38,19 +38,33 @@ final class Scheduler {
 	public static function register(): void {
 		add_action( self::HOOK_SYNC_POINTS, array( self::class, 'syncPickupPoints' ) );
 
-		if ( ! function_exists( 'as_has_scheduled_action' ) ) {
+		// Action Scheduler's data store is not ready during plugins_loaded, and
+		// calling it there raises a _doing_it_wrong notice. init is the earliest
+		// point at which scheduling is safe.
+		add_action( 'init', array( self::class, 'scheduleSync' ), 20 );
+	}
+
+	/**
+	 * Schedules the recurring sync once Action Scheduler is ready.
+	 *
+	 * @return void
+	 */
+	public static function scheduleSync(): void {
+		if ( ! function_exists( 'as_has_scheduled_action' ) || ! function_exists( 'as_schedule_recurring_action' ) ) {
 			return;
 		}
 
-		if ( ! as_has_scheduled_action( self::HOOK_SYNC_POINTS ) ) {
-			as_schedule_recurring_action(
-				time() + HOUR_IN_SECONDS,
-				DAY_IN_SECONDS,
-				self::HOOK_SYNC_POINTS,
-				array(),
-				'acs-courier'
-			);
+		if ( as_has_scheduled_action( self::HOOK_SYNC_POINTS ) ) {
+			return;
 		}
+
+		as_schedule_recurring_action(
+			time() + HOUR_IN_SECONDS,
+			DAY_IN_SECONDS,
+			self::HOOK_SYNC_POINTS,
+			array(),
+			'acs-courier'
+		);
 	}
 
 	/**
