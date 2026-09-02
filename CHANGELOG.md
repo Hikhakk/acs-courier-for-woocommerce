@@ -6,8 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Country-aware rate resolution. Greece is priced live by ACS; Cyprus uses a local
+  weight-banded table, because `ACS_Price_Calculation` does not support Cyprus.
+- A rate table with weight bands, separate home and locker pricing, a per-kilo increment
+  above the heaviest band, and a free-shipping threshold.
+- `PickupPoint`, mapping ACS store and Smartpoint rows with great-circle distance.
+  Verified against 1,620 live points (73 Cypriot lockers, 33 Cypriot stores, 1,514 Greek lockers).
+
 ### Planned
-- Smartpoint locker selection at checkout, shipping method with rates, cash on delivery.
+- Checkout locker selector, WooCommerce shipping method, cash on delivery.
 
 ## [0.2.0] - 2026-09-02
 

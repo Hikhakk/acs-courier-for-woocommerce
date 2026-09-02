@@ -92,8 +92,10 @@ issued — after that, deletion is impossible.
 - [x] Label printing (thermal and A4 laser)
 - [x] Pickup list workflow
 - [x] Tracking sync and non-delivery reasons
-- [ ] Smartpoint locker selection at checkout (~1,590 points across GR and CY)
-- [ ] Shipping method with live Greek pricing and a Cypriot rate table
+- [x] Pickup point model and distance search (1,620 live points verified)
+- [ ] Checkout locker selector UI
+- [x] Rate resolution: live Greek pricing, Cypriot rate table, fallback when ACS is down
+- [ ] WooCommerce shipping method wiring
 - [ ] Cash on delivery
 
 ## Contributing
