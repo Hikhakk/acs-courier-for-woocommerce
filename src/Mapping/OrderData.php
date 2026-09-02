@@ -110,6 +110,13 @@ final class OrderData {
 	public string $pickupPointId = '';
 
 	/**
+	 * Whether the chosen point is a Smartpoint locker rather than an ACS store.
+	 *
+	 * @var bool
+	 */
+	public bool $pickupPointIsLocker = false;
+
+	/**
 	 * Amount to collect on delivery, or null when the order is prepaid.
 	 *
 	 * @var float|null

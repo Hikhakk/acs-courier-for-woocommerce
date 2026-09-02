@@ -112,16 +112,37 @@ final class OrderMapperTest extends TestCase {
 		self::assertSame( 'Ring twice', $shipment->deliveryNotes );
 	}
 
-	public function test_a_chosen_pickup_point_routes_the_shipment(): void {
+	public function test_a_locker_is_addressed_by_station_alone_with_no_product(): void {
 		$shipment = OrderMapper::toShipment(
-			$this->order( array( 'pickupPointId' => 'NI:503' ) ),
+			$this->order(
+				array(
+					'pickupPointId'       => 'NI:508',
+					'pickupPointIsLocker' => true,
+				)
+			),
 			$this->settings()
 		);
 
 		self::assertSame( 'NI', $shipment->stationDestination );
-		self::assertSame( 503, $shipment->stationBranchDestination );
-		self::assertContains( 'REC', $shipment->deliveryProducts );
+		self::assertSame( 508, $shipment->stationBranchDestination );
+		// ACS: "An Acs-SmartPoint destination can not be combined with other products."
+		self::assertSame( array(), $shipment->deliveryProducts );
 		self::assertTrue( $shipment->isToPickupPoint() );
+	}
+
+	public function test_an_acs_store_needs_the_rec_product(): void {
+		$shipment = OrderMapper::toShipment(
+			$this->order(
+				array(
+					'pickupPointId'       => 'N6:1',
+					'pickupPointIsLocker' => false,
+				)
+			),
+			$this->settings()
+		);
+
+		self::assertSame( 'N6', $shipment->stationDestination );
+		self::assertContains( 'REC', $shipment->deliveryProducts );
 	}
 
 	public function test_no_pickup_point_means_home_delivery(): void {

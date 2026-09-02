@@ -98,38 +98,50 @@ final class LabelService {
 	/**
 	 * Turns the base64 document payload into raw PDF bytes.
 	 *
+	 * ACS nests the document inside ACSValueOutput rather than at the top level,
+	 * as an object carrying Voucher_No alongside PDFData. Recorded from the live
+	 * API; the documentation does not describe this shape.
+	 *
 	 * @param array<string,mixed> $response Contents of ACSOutputResponce.
 	 * @return array<string,string>
 	 * @throws AcsException If no document was returned.
 	 */
 	private function decode( array $response ): array {
-		$objects = $response['ACSObjectOutput'] ?? null;
+		$labels = array();
 
-		if ( ! is_array( $objects ) || array() === $objects ) {
+		foreach ( (array) ( $response['ACSValueOutput'] ?? array() ) as $entry ) {
+			if ( ! is_array( $entry ) || ! isset( $entry['ACSObjectOutput'] ) ) {
+				continue;
+			}
+
+			$object = $entry['ACSObjectOutput'];
+			if ( ! is_array( $object ) ) {
+				continue;
+			}
+
+			// A single document arrives as one object; several arrive as a list.
+			$documents = isset( $object['PDFData'] ) ? array( $object ) : $object;
+
+			foreach ( (array) $documents as $document ) {
+				if ( ! is_array( $document ) || ! isset( $document['PDFData'] ) ) {
+					continue;
+				}
+
+				$pdf = base64_decode( (string) $document['PDFData'], true );
+				if ( false === $pdf || '' === $pdf ) {
+					continue;
+				}
+
+				$voucher            = isset( $document['Voucher_No'] ) ? (string) $document['Voucher_No'] : '';
+				$labels[ $voucher ] = $pdf;
+			}
+		}//end foreach
+
+		if ( array() === $labels ) {
 			throw AcsException::business(
 				'ACS returned no label document. Vouchers must exist and not yet be on a pickup list.',
 				self::ALIAS_PRINT
 			);
-		}
-
-		$labels = array();
-		foreach ( $objects as $row ) {
-			if ( ! is_array( $row ) ) {
-				continue;
-			}
-			foreach ( $row as $voucher => $encoded ) {
-				if ( ! is_string( $encoded ) || '' === $encoded ) {
-					continue;
-				}
-				$decoded = base64_decode( $encoded, true );
-				if ( false !== $decoded ) {
-					$labels[ (string) $voucher ] = $decoded;
-				}
-			}
-		}
-
-		if ( array() === $labels ) {
-			throw AcsException::business( 'ACS returned a label payload that could not be decoded.', self::ALIAS_PRINT );
 		}
 
 		return $labels;

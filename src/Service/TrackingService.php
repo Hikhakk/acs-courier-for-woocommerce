@@ -48,6 +48,10 @@ final class TrackingService {
 	/**
 	 * Returns the latest status for a voucher.
 	 *
+	 * ACS knows nothing about a voucher until the pickup list has been issued and
+	 * the parcel has entered its network, so a freshly created voucher reports
+	 * "No Acs shipment found". That is expected, not a failure of this plugin.
+	 *
 	 * @param string $voucher_no Voucher number.
 	 * @return TrackingStatus
 	 * @throws AcsException If ACS does not recognise the voucher or returns nothing.

@@ -65,6 +65,11 @@ ACS's API has behaviours that will bite any naive client, each of which has a te
 - Rate limiting is HTTP **406**, which is retryable; **403** never is.
 - `ACS_Price_Calculation` works for Greece but **not** Cyprus.
 - A pickup list, once issued, makes its vouchers permanently undeletable.
+- Printed documents are nested inside `ACSValueOutput` as `{Voucher_No, PDFData}`, not at
+  the top level as the documentation implies.
+- A Smartpoint destination must carry **no** product code, while an ACS store requires
+  `REC`. Mixing them is rejected.
+- Tracking returns "no shipment found" until the pickup list is issued. That is normal.
 
 ## Development
 

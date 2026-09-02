@@ -126,8 +126,14 @@ final class PickupListServiceTest extends TestCase {
 			array(
 				'ACSExecution_HasError' => false,
 				'ACSOutputResponce'     => array(
-					'ACSObjectOutput' => array( array( '7227889830' => base64_encode( '%PDF list' ) ) ),
-					'ACSValueOutput'  => array( array( 'Error_Message' => null ) ),
+					'ACSValueOutput' => array(
+						array(
+							'ACSObjectOutput' => array(
+								'Voucher_No' => '7227889830',
+								'PDFData'    => base64_encode( '%PDF list' ),
+							),
+						),
+					),
 				),
 			)
 		);

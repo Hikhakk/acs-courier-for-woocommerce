@@ -30,6 +30,11 @@ final class LockerSelector {
 	public const FIELD = 'acs_wc_pickup_point';
 
 	/**
+	 * Order meta recording whether the chosen point is a locker.
+	 */
+	public const FIELD_IS_LOCKER = 'acs_wc_pickup_point_is_locker';
+
+	/**
 	 * Shipping rate id that requires a pickup point.
 	 */
 	public const LOCKER_RATE = 'acs_courier:locker';
@@ -238,9 +243,27 @@ final class LockerSelector {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce verifies the checkout nonce.
 		$chosen = isset( $_POST[ self::FIELD ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::FIELD ] ) ) : '';
 
-		if ( '' !== $chosen ) {
-			$order->update_meta_data( self::FIELD, $chosen );
+		if ( '' === $chosen ) {
+			return;
 		}
+
+		$order->update_meta_data( self::FIELD, $chosen );
+
+		// ACS addresses lockers and stores differently, so the kind must travel
+		// with the choice rather than being guessed at voucher time.
+		global $wpdb;
+		$table = \AcsCourier\Support\Installer::tableName();
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery
+		$kind = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT kind FROM {$table} WHERE point_id = %s",
+				$chosen
+			)
+		);
+
+		$order->update_meta_data( self::FIELD_IS_LOCKER, 8 === $kind ? 'yes' : 'no' );
 	}
 	// phpcs:enable Generic.CodeAnalysis.UnusedFunctionParameter
 

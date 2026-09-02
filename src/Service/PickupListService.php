@@ -112,23 +112,31 @@ final class PickupListService {
 			)
 		);
 
-		$objects = $response['ACSObjectOutput'] ?? array();
-		if ( is_array( $objects ) ) {
-			foreach ( $objects as $row ) {
-				if ( ! is_array( $row ) ) {
+		// ACS nests the document inside ACSValueOutput, as it does for labels.
+		foreach ( (array) ( $response['ACSValueOutput'] ?? array() ) as $entry ) {
+			if ( ! is_array( $entry ) || ! isset( $entry['ACSObjectOutput'] ) ) {
+				continue;
+			}
+
+			$object = $entry['ACSObjectOutput'];
+			if ( ! is_array( $object ) ) {
+				continue;
+			}
+
+			$documents = isset( $object['PDFData'] ) ? array( $object ) : $object;
+
+			foreach ( (array) $documents as $document ) {
+				$encoded = is_array( $document ) ? ( $document['PDFData'] ?? null ) : $document;
+				if ( ! is_string( $encoded ) || '' === $encoded ) {
 					continue;
 				}
-				foreach ( $row as $encoded ) {
-					if ( ! is_string( $encoded ) || '' === $encoded ) {
-						continue;
-					}
-					$decoded = base64_decode( $encoded, true );
-					if ( false !== $decoded ) {
-						return $decoded;
-					}
+
+				$decoded = base64_decode( $encoded, true );
+				if ( false !== $decoded && '' !== $decoded ) {
+					return $decoded;
 				}
 			}
-		}
+		}//end foreach
 
 		throw AcsException::business( 'ACS returned no pickup list document.', self::ALIAS_PRINT );
 	}

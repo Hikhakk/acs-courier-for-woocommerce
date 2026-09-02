@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.4.0] - 2026-09-02
 
+### Fixed
+- Label and pickup list printing. ACS nests the document inside `ACSValueOutput` as an
+  object with `Voucher_No` and `PDFData`, not at the top level as first assumed. Found by
+  running the real cycle against ACS; fixtures are now recorded rather than invented.
+- Smartpoint locker delivery. ACS rejects any product code alongside a Smartpoint
+  destination ("An Acs-SmartPoint destination can not be combined with other products"),
+  while an ACS *store* requires `REC`. The two are now handled distinctly.
+
 ### Added
 - Cash on delivery. The amount, collection method and the ACS `COD` product are set from
   the order when an unpaid COD gateway was used, filterable via `acs_wc_cod_gateways`.

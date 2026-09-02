@@ -21,12 +21,21 @@ final class LabelServiceTest extends TestCase {
 	}
 
 	private function pdfResponse( string $voucher, string $pdfBytes ): string {
+		// Shape recorded from the live API: the document is nested inside
+		// ACSValueOutput as an object with Voucher_No and PDFData.
 		return (string) json_encode(
 			array(
 				'ACSExecution_HasError' => false,
 				'ACSOutputResponce'     => array(
-					'ACSObjectOutput' => array( array( $voucher => base64_encode( $pdfBytes ) ) ),
-					'ACSValueOutput'  => array( array( 'Error_Message' => null ) ),
+					'ACSValueOutput' => array(
+						array(
+							'ACSObjectOutput' => array(
+								'Voucher_No' => $voucher,
+								'PDFData'    => base64_encode( $pdfBytes ),
+							),
+						),
+					),
+					'ACSTableOutput' => array(),
 				),
 			)
 		);
@@ -89,6 +98,16 @@ final class LabelServiceTest extends TestCase {
 			'laser position 0'   => array( LabelService::PRINT_LASER, 0, false ),
 			'thermal ignores it' => array( LabelService::PRINT_THERMAL, 1, true ),
 		);
+	}
+
+	public function test_it_reads_the_recorded_live_response(): void {
+		$body    = (string) file_get_contents( __DIR__ . '/../../fixtures/print_voucher_v2.json' );
+		$service = $this->service( array( new TransportResponse( 200, $body ) ) );
+
+		$labels = $service->fetch( array( '7401634063' ), LabelService::PRINT_LASER, 1 );
+
+		self::assertArrayHasKey( '7401634063', $labels );
+		self::assertStringStartsWith( '%PDF', $labels['7401634063'] );
 	}
 
 	public function test_a_response_without_a_pdf_is_an_error(): void {

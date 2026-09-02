@@ -26,18 +26,19 @@ final class WooOrderReader {
 	public static function read( \WC_Order $order ): OrderData {
 		$data = new OrderData();
 
-		$data->id            = (int) $order->get_id();
-		$data->name          = trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() );
-		$data->company       = (string) $order->get_shipping_company();
-		$data->address1      = (string) $order->get_shipping_address_1();
-		$data->address2      = (string) $order->get_shipping_address_2();
-		$data->city          = (string) $order->get_shipping_city();
-		$data->postcode      = (string) $order->get_shipping_postcode();
-		$data->countryCode   = (string) $order->get_shipping_country();
-		$data->email         = (string) $order->get_billing_email();
-		$data->customerNote  = (string) $order->get_customer_note();
-		$data->weightUnit    = (string) get_option( 'woocommerce_weight_unit', 'kg' );
-		$data->pickupPointId = (string) $order->get_meta( LockerSelector::FIELD );
+		$data->id                  = (int) $order->get_id();
+		$data->name                = trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() );
+		$data->company             = (string) $order->get_shipping_company();
+		$data->address1            = (string) $order->get_shipping_address_1();
+		$data->address2            = (string) $order->get_shipping_address_2();
+		$data->city                = (string) $order->get_shipping_city();
+		$data->postcode            = (string) $order->get_shipping_postcode();
+		$data->countryCode         = (string) $order->get_shipping_country();
+		$data->email               = (string) $order->get_billing_email();
+		$data->customerNote        = (string) $order->get_customer_note();
+		$data->weightUnit          = (string) get_option( 'woocommerce_weight_unit', 'kg' );
+		$data->pickupPointId       = (string) $order->get_meta( LockerSelector::FIELD );
+		$data->pickupPointIsLocker = 'yes' === (string) $order->get_meta( LockerSelector::FIELD_IS_LOCKER );
 
 		/**
 		 * Filters which payment gateways mean cash on delivery.
