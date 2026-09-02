@@ -76,6 +76,27 @@ final class PickupPointTest extends TestCase {
 		self::assertNull( $p->distanceKm( 35.0, 33.0 ) );
 	}
 
+	public function test_it_exposes_its_coordinates(): void {
+		$p = $this->point();
+
+		self::assertTrue( $p->hasCoordinates() );
+		self::assertSame( 35.161, $p->lat() );
+		self::assertSame( 33.321, $p->lng() );
+	}
+
+	public function test_a_point_without_coordinates_reports_so(): void {
+		$p = $this->point(
+			array(
+				'ACS_SHOP_LAT'  => '',
+				'ACS_SHOP_LONG' => '',
+			)
+		);
+
+		self::assertFalse( $p->hasCoordinates() );
+		self::assertNull( $p->lat() );
+		self::assertNull( $p->lng() );
+	}
+
 	public function test_a_row_without_a_station_is_rejected(): void {
 		$this->expectException( \InvalidArgumentException::class );
 		PickupPoint::fromAcsRow( array( 'ACS_SHOP_BRANCH_ID' => 1 ) );

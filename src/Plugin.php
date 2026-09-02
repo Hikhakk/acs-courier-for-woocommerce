@@ -12,6 +12,10 @@ namespace AcsCourier;
 
 use AcsCourier\Admin\OrderMetaBox;
 use AcsCourier\Admin\Settings;
+use AcsCourier\Integration\LockerSelector;
+use AcsCourier\Integration\ShippingMethod;
+use AcsCourier\Integration\Scheduler;
+use AcsCourier\Support\Installer;
 use AcsCourier\Support\Requirements;
 
 /**
@@ -82,8 +86,12 @@ final class Plugin {
 					dirname( plugin_basename( $file ) ) . '/languages'
 				);
 
+				Installer::maybeInstall();
 				Settings::register();
 				OrderMetaBox::register();
+				ShippingMethod::register();
+				LockerSelector::register();
+				Scheduler::register();
 
 				/**
 				 * Fires once the plugin has booted successfully.
