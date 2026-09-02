@@ -1,284 +1,307 @@
 # ACS Courier for WooCommerce — Design
 
 **Date:** 2026-09-02
-**Target:** apoel.com.cy (Cloudways) — WP 7.1, WooCommerce 10.5.3, PHP 8.4
-**Scope:** Shipping (voucher creation, labels, pickup list) + tracking, home delivery and
-Smartpoint locker pickup, Cyprus. Prepaid only.
+**Type:** Open-source WordPress plugin, distributed via the WordPress.org Plugin Directory
+**Licence:** GPL-2.0-or-later
+**Markets:** Greece (GR) and Cyprus (CY)
+**Supports:** WordPress 6.0+, WooCommerce 8.0+, PHP 8.0–8.4, HPOS and legacy order storage
 
 ---
 
 ## 1. Purpose
 
-Let store staff turn a paid WooCommerce order into an ACS shipment without leaving wp-admin,
-and let customers choose locker pickup at checkout and follow their parcel afterwards.
+A production-grade WooCommerce integration for ACS Courier, usable by any store in Greece or
+Cyprus. Staff create vouchers, print labels, issue the pickup list and track shipments from
+wp-admin; customers pick home delivery or an ACS Smartpoint locker at checkout and follow the
+parcel afterwards.
 
-**In scope:** voucher creation, label printing, the pickup-list workflow, tracking sync,
-customer-facing tracking, locker/store pickup selection, a local rate table.
+This is a general-purpose plugin, not a bespoke integration. **No store-specific assumptions,
+no hardcoded credentials, no bundled merchant data.**
 
-**Out of scope (v1):** COD, Greece-bound shipments, multi-warehouse, returns/RVO,
-label re-print after 6 months, ACS price calculation (unavailable for Cyprus — see §4).
+**In scope:** voucher creation, label printing (thermal + laser), pickup list workflow, tracking
+sync, customer tracking display, pickup-point selection, COD, rate calculation, GR + CY.
+
+**Out of scope (v1):** countries other than GR/CY (the API does not support voucher creation
+elsewhere), multi-warehouse, returns/RVO automation, ACS Smart Point *sending* (drop-off).
 
 ---
 
-## 2. Constraints discovered by probing the live API
+## 2. WordPress.org compliance
 
-These were verified against the staging account, not taken from the PDF.
+Directory rules are design constraints, not packaging afterthoughts.
+
+| Rule | How the design satisfies it |
+|---|---|
+| GPLv2-or-later compatible | `GPL-2.0-or-later`, `LICENSE` in repo, header in every file. Any bundled library must be GPL-compatible; minified assets ship with source. |
+| **No artificial restrictions** — no license gates, paywalls, trials, quotas | Every feature in the codebase is available to every user, always. There is no "pro" tier, no feature flag tied to a key, no upsell nag. **This is why COD is in v1** rather than held back. |
+| No external links on the public site without consent | No "powered by" output. Nothing is rendered on the storefront that the merchant did not configure. |
+| Must use the assigned SVN repository | Git is the working repo; a `deploy` workflow syncs tagged releases to WordPress.org SVN. |
+| Not a spammer, no abuse | No telemetry, no phone-home, no email collection, no admin nags beyond genuine configuration errors. |
+| External service disclosure | `readme.txt` must state plainly that the plugin transmits order data to ACS Courier's API, link ACS's terms and privacy policy, and name exactly what is sent. This is a hard directory requirement for any plugin calling a third party. |
+
+**Naming.** Display name **"ACS Courier for WooCommerce"**, slug `acs-courier-for-woocommerce`,
+text domain identical to the slug. The `<Service> for WooCommerce` form is the pattern the
+WooCommerce trademark policy accepts; `WooCommerce ACS` would not be.
+
+> **Open question for the client:** "ACS Courier" is ACS's trademark. Descriptive use in a
+> compatibility name is normally defensible, but before publishing I'd get written acknowledgement
+> from ACS. This is a legal call, not a technical one, and it is cheap to ask now and expensive to
+> unwind after publication.
+
+**Privacy.** The plugin transmits customer name, address, phone, and email to ACS to create a
+shipment. It registers a GDPR data exporter and eraser so merchants can honour subject requests,
+and documents retention in `readme.txt`.
+
+---
+
+## 3. Constraints verified against the live API
+
+Probed against a real ACS account, not assumed from the PDF.
 
 | Finding | Consequence |
 |---|---|
-| Errors return **HTTP 200** with `ACSExecution_HasError: false` and the real message in `ACSValueOutput[0].Error_Message` | The client must check **both** channels. This is the single most likely source of silent failure. |
-| Response envelope key is misspelled `ACSOutputResponce` | Contained in one mapper; never leaks past the client. |
-| Field names misspelled `Cod_Ammount`, `Insurance_Ammount` | Same — one mapping table. |
-| `ACS_Price_Calculation` does not support Cyprus | Rates must be local. See §6. |
-| `Content_Type_ID` mandatory for `Recipient_Country: CY` | Hard validation before send; failure means Larnaca customs fines. |
-| 18 content types, 33 CY stores, **73 CY Smartpoint lockers** | Cached reference data, refreshed daily. |
-| Rate limit 10 concurrent calls/sec → **406** | Client-side throttle + backoff. |
-| Vouchers must be printed *before* the pickup list is issued | Workflow guardrail, not a free-form button. |
-| An issued pickup list makes vouchers permanently undeletable | Confirmation step before issuing. |
-| Cypriot ZIP is 4-digit (Greek 5-digit) | Validation differs by country. |
-| Weight min 0.5 kg, max 999; max 99 pieces; volumetric = L×W×H/5000 | Clamp and warn at mapping time. |
+| Business errors return **HTTP 200** with `ACSExecution_HasError: false`, real message in `ACSValueOutput[0].Error_Message` | The client checks **both** channels. The single most likely cause of silent failure. |
+| Envelope key misspelled `ACSOutputResponce`; fields `Cod_Ammount`, `Insurance_Ammount` | Isolated in one `FieldMap`; never leaks past the client layer. |
+| `ACS_Price_Calculation` **works for Greece** (verified: €5.48 base / €5.80 incl. VAT) but **not Cyprus** | Strategy pattern: live API for GR, local rate table for CY. |
+| **GR: 156 stores + 1,514 lockers. CY: 33 stores + 73 lockers.** ~1,590 pickup points | Rules out a plain dropdown. Drives indexed storage and geo pre-filtering (§6). |
+| `Content_Type_ID` mandatory when destination is CY | Hard pre-flight validation; omission causes Larnaca customs fines. |
+| Rate limit 10 concurrent calls/sec → **406** | Client-side throttle with backoff. |
+| Vouchers must be printed before the pickup list is issued | Workflow guardrail. |
+| An issued pickup list makes its vouchers permanently undeletable | Explicit confirmation before issuing. |
+| ZIP is 5-digit GR, 4-digit CY | Country-aware validation. |
+| Address validation requires Greek characters | Warn on Latin input rather than failing opaquely. |
+| Weight 0.5–999 kg, max 99 pieces, volumetric = L×W×H/5000 | Clamp and warn at mapping time. |
+| Locker delivery rejects `Item_Quantity > 1`; COD to a locker requires recipient email | Validated at checkout, while the customer can still act. |
 
 ---
 
-## 3. Architecture
+## 4. Architecture
 
-Four layers, each independently testable. Dependencies point downward only.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ 4. WordPress / WooCommerce surface                      │
-│    shipping method · order meta box · bulk actions      │
-│    checkout locker selector · emails · my-account       │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│ 3. Services (WP-aware, orchestration)                   │
-│    ShipmentService · TrackingService · PickupListService│
-│    PickupPointRepository · RateCalculator               │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│ 2. Domain (pure PHP value objects)                      │
-│    Shipment · Voucher · PickupPoint · TrackingEvent     │
-│    OrderMapper (WC order → ACS fields)                  │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│ 1. AcsClient — ZERO WordPress dependencies              │
-│    envelope · dual error check · throttle · Transport   │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Why layer 1 has no WordPress:** it can be tested with plain PHPUnit and a fake `Transport`,
-using fixtures recorded from the staging account. No WP bootstrap, tests run in milliseconds,
-and every ACS quirk in §2 gets a regression test. When ACS changes their contract, one layer
-changes.
-
-`Transport` is an interface. Production uses a `WpHttpTransport` wrapping `wp_remote_post`;
-tests use `ArrayTransport` replaying fixtures. This is the only seam between layers 1 and 2.
-
-### File layout
+Four layers, dependencies pointing downward only.
 
 ```
-wc-acs-courier/
-├── wc-acs-courier.php              # bootstrap, HPOS declaration
+┌──────────────────────────────────────────────────────────────┐
+│ 4. WordPress / WooCommerce surface                           │
+│    ShippingMethod · OrderMetaBox · BulkActions               │
+│    PickupListScreen · LockerSelector · Emails · MyAccount    │
+└────────────────────────────┬─────────────────────────────────┘
+┌────────────────────────────▼─────────────────────────────────┐
+│ 3. Services (WP-aware orchestration)                         │
+│    ShipmentService · TrackingService · PickupListService     │
+│    PickupPointRepository · RateResolver                      │
+│      ├── GreeceRateStrategy  → live ACS_Price_Calculation    │
+│      └── CyprusRateStrategy  → local weight-banded table     │
+└────────────────────────────┬─────────────────────────────────┘
+┌────────────────────────────▼─────────────────────────────────┐
+│ 2. Domain (pure PHP value objects)                           │
+│    Shipment · Voucher · PickupPoint · TrackingEvent          │
+│    Country · Money · Weight · OrderMapper · FieldMap         │
+└────────────────────────────┬─────────────────────────────────┘
+┌────────────────────────────▼─────────────────────────────────┐
+│ 1. AcsClient — ZERO WordPress dependencies                   │
+│    envelope · dual error check · Throttle · Transport        │
+└──────────────────────────────────────────────────────────────┘
+```
+
+Layer 1 is testable with plain PHPUnit against recorded fixtures — no WP bootstrap, tests in
+milliseconds, every quirk in §3 covered by a regression test. `Transport` is the only seam:
+`WpHttpTransport` (wraps `wp_remote_post`) in production, `ArrayTransport` replaying fixtures in
+tests.
+
+### Layout
+
+```
+acs-courier-for-woocommerce/
+├── acs-courier-for-woocommerce.php   # bootstrap, HPOS declaration, requirement checks
+├── uninstall.php
+├── readme.txt · README.md · LICENSE · CHANGELOG.md · CONTRIBUTING.md · SECURITY.md
 ├── src/
-│   ├── Api/  AcsClient · Transport · WpHttpTransport · AcsException · Throttle
-│   ├── Domain/  Shipment · Voucher · PickupPoint · TrackingEvent · ContentType
-│   ├── Mapping/ OrderMapper · FieldMap
-│   ├── Service/ ShipmentService · TrackingService · PickupListService
-│   │            PickupPointRepository · RateCalculator
-│   ├── Admin/   SettingsPage · OrderMetaBox · BulkActions · PickupListScreen
-│   ├── Frontend/ LockerSelector · TrackingDisplay
-│   └── Integration/ ShippingMethod · Emails · Scheduler
-├── assets/
-├── languages/                      # el_GR + en_GB
-└── tests/  Unit/ · Integration/ · fixtures/
+│   ├── Api/          AcsClient · Transport · WpHttpTransport · Throttle · AcsException
+│   ├── Domain/       Shipment · Voucher · PickupPoint · TrackingEvent · Country · Weight
+│   ├── Mapping/      OrderMapper · FieldMap · AddressSplitter
+│   ├── Service/      ShipmentService · TrackingService · PickupListService
+│   │                 PickupPointRepository · RateResolver · Rates/{Greece,Cyprus}Strategy
+│   ├── Admin/        SettingsPage · OrderMetaBox · BulkActions · PickupListScreen · Logs
+│   ├── Frontend/     LockerSelector · TrackingDisplay
+│   ├── Integration/  ShippingMethod · CodGateway · Emails · Scheduler · Privacy
+│   └── Support/      Installer · Migrations · Requirements
+├── assets/           css · js (source + built)
+├── languages/        .pot + el_GR
+└── tests/            Unit · Integration · fixtures
 ```
 
 ---
 
-## 4. Data flow
+## 5. Data flow
 
 ```
 Order paid
    │
-   ▼
-[ShipmentService::create]
-   ├─ OrderMapper: WC order → ACS fields
-   │    · weight: sum line items, clamp to 0.5 kg floor
-   │    · address: street/number split, region separated (ACS rejects region in address)
-   │    · CY → require Content_Type_ID
-   │    · locker chosen → Acs_Station_Destination + Branch + product "REC"
-   ├─ validate locally (fail fast, no API call on invalid data)
-   └─ ACS_Create_Voucher → Voucher_No stored on order meta + order note
+   ▼ ShipmentService::create   (idempotency lock + existing-voucher check)
+   ├─ OrderMapper → ACS fields
+   │    · weight: sum line items, clamp to 0.5 kg floor, volumetric if greater
+   │    · address: street / number / region split (ACS rejects region inside address)
+   │    · destination CY → Content_Type_ID required
+   │    · locker chosen → Acs_Station_Destination + Branch + product REC
+   │    · COD enabled → Cod_Ammount + Cod_Payment_Way + product COD
+   ├─ validate locally — no API call on data ACS will reject
+   └─ ACS_Create_Voucher → Voucher_No on order meta + order note
    │
-   ▼
-[Print label]  ACS_Print_Voucher_V2 → base64 byte array → PDF
-   · thermal (Print_Type 1) or laser A4 (Print_Type 2, Start_Position 1-3)
-   · marks order as "label printed" — required before the next step
+   ▼ ACS_Print_Voucher_V2 → byte array → PDF (thermal / laser A4, up to 10 per call)
+   │   marks label printed — prerequisite for the next step
    │
-   ▼
-[Issue pickup list]  ACS_Issue_Pickup_List  ← MANDATORY, else barcodes are dead
-   · blocked in UI unless every selected voucher is printed
-   · confirmation: after this, vouchers cannot be deleted
-   └─ PickupList_No → print via ACS_Print_Pickup_List
+   ▼ ACS_Issue_Pickup_List   ← MANDATORY; without it barcodes are not recognised
+   │   blocked unless every selected voucher is printed
+   │   confirmation: vouchers become undeletable
    │
-   ▼
-[Tracking]  Action Scheduler, every 6h for shipments < 30 days old
-   · ACS_Trackingsummary → shipment_status
-   · status 4 = delivered → mark order complete (configurable)
-   · status 6/7 = returning/returned → order note + admin notice
-   · non-delivery codes (AD1/AP1/LS3/…) → human-readable order note
+   ▼ Tracking — Action Scheduler, backing off by shipment age
+       status 4 delivered · 6 returning · 7 returned
+       non-delivery codes (AD1/AP1/LS3/…) → human-readable order note
 ```
 
-**Idempotency.** Voucher creation is guarded by an order meta lock plus a check for an existing
-`Voucher_No`. A double-click, a retried webhook, or a duplicated Action Scheduler job must never
-produce two vouchers for one order — that would be a real cost and a real parcel.
+**Idempotency.** Voucher creation is guarded by an order-meta lock plus an existing-`Voucher_No`
+check. A double-click, retried job, or duplicated scheduled action must never create two
+vouchers — that is a second real parcel and a real charge.
 
 ---
 
-## 5. Locker pickup at checkout
+## 6. Pickup points at scale
 
-**Data.** `PickupPointRepository` caches ACS stores (`ACS_SHOP_KIND` 1) and Smartpoint lockers
-(kind 8) for `CY` in a custom table, refreshed daily by Action Scheduler. Each row keeps
-station id, branch id, description, address, lat/lng, and opening hours. Checkout never calls ACS.
+~1,590 points across both countries. This is the part a naive implementation gets wrong.
 
-**UX.** When the customer picks the "ACS Pickup Point" shipping method, a selector appears
-under the shipping block:
+**Storage.** A dedicated table, not options or transients — 1,590 serialised rows in an autoloaded
+option would be a performance regression on every page load. Indexed on `(country, kind, postcode)`
+plus lat/lng. Refreshed daily by Action Scheduler, with a manual refresh in settings.
 
-- their postcode pre-filters to the nearest points (haversine against cached lat/lng)
-- a searchable list showing name, address and opening hours, with distance
-- selection stores `station_id` + `branch_id` in session, then order meta
-- the chosen point is echoed in the order confirmation, admin order screen, and emails
+**Selection.** Checkout never calls ACS.
+1. Customer's postcode narrows candidates via the indexed `postcode` column.
+2. Remaining candidates sorted by haversine distance from the postcode centroid.
+3. Rendered as a searchable, paginated list — name, address, opening hours, distance.
+4. Choice stored in session, then order meta, then echoed on the order, admin screen and emails.
 
-A map is deliberately **not** in v1 — it needs a tile provider and an API key for marginal gain
-over a distance-sorted list. The data model supports adding one later without migration.
+**No map in v1.** It needs a tile provider and API key for marginal gain over a distance-sorted
+list, and an embedded third-party map raises an external-request disclosure obligation. The schema
+carries lat/lng so a map is additive later.
 
-**Validation.** ACS rejects locker delivery when `Item_Quantity > 1`, and requires a recipient
-mobile number. Both are checked at checkout, not at voucher time, so the customer sees the
-problem while they can still fix it.
-
----
-
-## 6. Rates
-
-`ACS_Price_Calculation` does not support Cyprus, so the shipping method cannot ask ACS what to
-charge. `RateCalculator` uses a weight-banded table, editable in settings:
-
-| Band | Home delivery | Locker |
-|---|---|---|
-| 0–2 kg | configurable | configurable, lower |
-| 2–5 kg | | |
-| 5–10 kg | | |
-| 10 kg+ | per-kg increment | |
-
-Free-shipping threshold, and a flag to charge on volumetric weight (L×W×H/5000) when it exceeds
-actual. Values are the merchant's commercial decision, seeded with placeholders — **not invented
-by me**, since real ACS pricing depends on their contract.
+**Validation at checkout, not at voucher time:** locker delivery rejects multi-piece shipments,
+and COD to a locker requires an email — surfaced while the customer can still change something.
 
 ---
 
-## 7. Error handling
+## 7. Rates
 
-**Three failure classes, handled differently:**
+`RateResolver` picks a strategy by destination country.
 
-1. **Transport** (timeout, DNS, 5xx) — retry with exponential backoff, max 3, then surface and
-   leave the order untouched. Never partially mutate.
-2. **Auth / rate limit** (403 / 406) — no retry on 403 (it will never succeed); 406 backs off and
-   requeues via Action Scheduler.
-3. **Business** (HTTP 200 + error in either channel) — parsed into `AcsException` with the ACS
-   message, written to an order note verbatim, shown as an admin notice. ACS messages are often
-   Greek; they are shown as-is rather than mistranslated.
+- **Greece — `GreeceRateStrategy`.** Live `ACS_Price_Calculation`, cached per
+  (origin, destination, weight band, products) for 24h. Falls back to the local table if the API
+  is unreachable, so checkout never breaks because ACS is down.
+- **Cyprus — `CyprusRateStrategy`.** Weight-banded local table, editable in settings, separate
+  home and locker columns (locker cheaper, which is the incentive to use one). Configurable
+  free-shipping threshold and volumetric toggle.
 
-**Logging** goes through `WC_Logger` (source `acs-courier`), so it lands in WooCommerce → Status →
-Logs. Requests and responses are logged with **credentials redacted**.
-
----
-
-## 8. Security
-
-- Credentials live in `wp_options`, writable only by `manage_woocommerce`, and are **overridable
-  by constants in `wp-config.php`** (`ACS_API_KEY` etc.) so production secrets need never be in
-  the database or a git repo.
-- The API key is never rendered in HTML, never logged, and masked in the settings field.
-- All admin actions are nonce-protected and capability-checked; label PDFs stream through an
-  authenticated handler rather than a guessable uploads URL.
-- No customer data is sent to ACS beyond what the voucher requires.
+Shipped defaults are **empty placeholders, not invented prices** — real rates depend on each
+merchant's ACS contract.
 
 ---
 
-## 9. Testing
+## 8. Extensibility
 
-**Unit (no WordPress, fast):** `AcsClient` against recorded fixtures — the dual-error case,
-the misspelled envelope, 403, 406, malformed JSON, timeout. `OrderMapper` — weight clamping,
-address/region splitting, CY content-type enforcement, locker field population. `RateCalculator` —
-every band boundary, volumetric crossover, free-shipping threshold.
+A directory plugin is a platform for other developers. A documented, stable hook surface:
 
-**Integration (WP + WooCommerce):** order → voucher → label → pickup list against the **staging
-ACS account**, using a scratch order. Every created voucher is deleted in teardown *before* a
-pickup list is issued, since issuing makes deletion impossible.
+- `acs_wc_before_create_voucher` / `acs_wc_after_create_voucher`
+- `acs_wc_voucher_payload` — filter the outgoing field array
+- `acs_wc_rate` — filter a calculated rate
+- `acs_wc_pickup_points` — filter/extend the candidate list
+- `acs_wc_tracking_updated` — react to a status change
+- `acs_wc_should_auto_create_voucher` — control automation
 
-**Manual:** checkout locker selection on mobile and desktop; label print on both thermal and A4.
-
-TDD throughout: the ACS quirks in §2 each get a failing test first.
-
----
-
-## 10. Prerequisites — blocked on the client
-
-The store cannot currently produce an order. These are required before end-to-end testing:
-
-1. **Restore WooCommerce pages** — cart, checkout, my-account are all deleted (IDs 288/289/287).
-2. **Units** — store is set to **oz / inches**; ACS needs **kg / cm**.
-3. **Store address** — currently the theme placeholder *"350 5th Ave New York 10118"*. Needs
-   APOEL's real sender address and phone; it prints on every voucher.
-4. **Product weights** — none of the 14 products has a weight. ACS requires ≥ 0.5 kg and weight
-   drives the rate band.
-5. **Payment gateway** — handled externally per decision; testing uses programmatic orders.
-6. **Rate table values** — merchant's ACS contract pricing.
+Public service classes resolve through a small container so integrators can substitute
+implementations. Every hook is documented in `README.md` with signature and an example.
 
 ---
 
-## 11. Decisions and their reasons
+## 9. Error handling
 
-| Decision | Why |
-|---|---|
-| WP-free API client | ACS's contract is quirky; isolating it makes every quirk regression-testable without a WP bootstrap. |
-| Action Scheduler, not wp-cron | Already running on this install; observable, retryable, survives traffic gaps. |
-| Cache pickup points | 73+33 rows; checkout must never block on a third party. |
-| Local rate table | ACS price calculation genuinely does not support Cyprus. |
-| No map in v1 | Tile provider + key for marginal gain over a sorted list. |
-| Declare HPOS compatible | Costs nothing now, avoids a migration wall later. |
-| Prepaid only, COD seam left | Per decision; `Cod_*` fields exist in `FieldMap` but are always null, so COD is additive. |
-| Idempotency lock on voucher creation | A duplicate voucher is a real parcel and a real cost. |
+1. **Transport** (timeout, DNS, 5xx) — exponential backoff, max 3 attempts, then surface and
+   leave the order unchanged. Never partially mutate.
+2. **Auth / rate limit** — 403 never retries (it cannot succeed); 406 backs off and requeues.
+3. **Business** (200 + error in either channel) — `AcsException` carrying ACS's message, written
+   verbatim to an order note and shown as an admin notice. ACS messages are often Greek and are
+   shown as-is rather than mistranslated.
+
+Logging via `WC_Logger` (source `acs-courier`), visible under WooCommerce → Status → Logs,
+with **credentials redacted**. Log level configurable; off by default.
+
+---
+
+## 10. Security
+
+- Credentials stored in options, gated on `manage_woocommerce`, and **overridable by constants**
+  (`ACS_WC_API_KEY`, …) so production secrets never need to live in the database.
+- API key never rendered, never logged, masked in the settings field.
+- Every admin action nonce-protected and capability-checked.
+- Label PDFs stream through an authenticated handler, never a guessable uploads URL.
+- All input sanitised, all output escaped, all SQL prepared — enforced by PHPCS/WPCS in CI.
+- `uninstall.php` removes options, tables and scheduled actions on explicit uninstall only.
+
+---
+
+## 11. Testing
+
+**Unit (no WordPress):** `AcsClient` against fixtures — dual-error case, misspelled envelope,
+403, 406, malformed JSON, timeout. `OrderMapper` — weight clamping, address/region splitting,
+CY content-type enforcement, locker fields, COD fields. Rate strategies — band boundaries,
+volumetric crossover, GR API fallback.
+
+**Integration (WP + WooCommerce):** full create → print → issue → track cycle against a real ACS
+account. Vouchers created in tests are deleted in teardown **before** any pickup list is issued,
+since issuing makes deletion impossible.
+
+**Compatibility matrix in CI:** PHP 8.0/8.1/8.2/8.3/8.4 × WooCommerce floor and latest ×
+HPOS on/off. PHPCS (WordPress-Extra + WordPress-Docs) and PHPStan level 6.
+
+**Manual:** checkout locker selection on mobile and desktop; thermal and A4 label output.
 
 ---
 
 ## 12. Build phases
 
-Sequenced so each phase is independently verifiable and the risky parts come first.
-
-| # | Phase | Hours | Verifiable when |
+| # | Phase | Hours | Done when |
 |---|---|---|---|
-| 0 | Shop restoration (pages, metric units, store address, CY shipping zone, weights) | 3–5 | A programmatic order completes with a shipping line |
-| 1 | `AcsClient` + fixtures + throttle | 3–4 | Unit tests green for every §2 quirk |
-| 2 | Domain + `OrderMapper` | 3 | Order maps to a valid ACS payload, offline |
-| 3 | Settings screen + credential handling | 2 | Round-trips creds; constants override |
-| 4 | Voucher creation + idempotency | 4 | Real voucher on staging, deleted in teardown |
-| 5 | Label printing (thermal + laser, bulk) | 3 | Valid PDF from byte array |
-| 6 | Pickup list + workflow guardrails | 3 | Cannot issue with unprinted vouchers |
-| 7 | Pickup point cache + checkout selector | 5–7 | Customer selects a locker; it reaches the voucher |
-| 8 | Shipping method + rate table | 3 | Correct rate at every band boundary |
-| 9 | Tracking sync + customer display | 4 | Status transitions drive order notes |
-| 10 | i18n (EL/EN), hardening, end-to-end pass | 3 | Full create→print→issue→track cycle |
+| 1 | `AcsClient`, throttle, fixtures | 4 | Every §3 quirk has a passing regression test |
+| 2 | Domain, `OrderMapper`, `FieldMap` | 4 | Order → valid payload, entirely offline |
+| 3 | Plugin scaffold, requirements, settings, credentials | 4 | Activates cleanly; constants override |
+| 4 | Voucher creation + idempotency | 5 | Real voucher on staging, deleted in teardown |
+| 5 | Labels (thermal + laser + bulk) | 4 | Valid PDF from byte array |
+| 6 | Pickup list + workflow guardrails | 4 | Cannot issue with unprinted vouchers |
+| 7 | Pickup-point storage, sync, checkout selector | 8 | 1,590 points searchable without slowing checkout |
+| 8 | Shipping method + both rate strategies | 6 | GR live pricing; CY table; API-down fallback |
+| 9 | COD gateway + reconciliation | 4 | COD order → correct voucher fields |
+| 10 | Tracking sync + customer display | 5 | Status transitions drive notes and order state |
+| 11 | i18n (EL/EN), a11y, hooks documentation | 4 | `.pot` complete; hooks documented |
+| 12 | WordPress.org packaging, CI matrix, PHPCS/PHPStan | 5 | Green matrix; `readme.txt` passes the validator |
+| 13 | Hardening + end-to-end pass on a clean install | 4 | Full cycle on a fresh WP/WC install |
 
-## 13. Estimate
+**Total: ~57–63 h** (≈ 7–8 working days).
 
-**Core plugin including locker pickup: ~33–39 h.** With shop restoration (phase 0):
-**~36–44 h** — consistent with the 40 h figure quoted before scope was fixed.
+The earlier 36–44 h figure was for a Cyprus-only, prepaid-only, single-site integration. Greece
+support, COD, ~1,590 pickup points, the extensibility surface, the CI matrix and directory
+compliance account for the difference. Deploying it to apoel.com.cy — and restoring that store's
+checkout, units, address and product weights — remains separate, at ~3–5 h.
 
-Dropping COD and the payment gateway removed work from the earlier quote, but locker pickup
-(phase 7) added it back; the two roughly cancel.
+---
 
-Excludes: payment gateway integration, real ACS contract rate values, product weight data entry.
+## 13. Decisions and reasons
+
+| Decision | Why |
+|---|---|
+| WP-free API client | ACS's contract is quirky; isolation makes every quirk regression-testable without a WP bootstrap. |
+| Rate strategy per country | Verified: price calculation works for GR, not CY. One code path would be wrong for someone. |
+| Pickup points in a table, not options | 1,590 rows autoloaded on every request would be a site-wide performance regression. |
+| COD included in v1 | Directory rules forbid artificial feature restrictions, and COD is table stakes in GR/CY. |
+| No map in v1 | Tile provider + key, plus an external-request disclosure, for marginal gain over a sorted list. |
+| Action Scheduler over wp-cron | Ships with WooCommerce; observable, retryable, survives traffic gaps. |
+| Declare HPOS compatible | Costs nothing now; avoids a migration wall for adopters. |
+| Idempotency lock | A duplicate voucher is a real parcel and a real charge. |
+| No telemetry, no upsell | Directory rules, and it is the right default. |
+| GR API rate fallback to local table | Checkout must not break because a third party is down. |
