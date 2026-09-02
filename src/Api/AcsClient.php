@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace AcsCourier\Api;
 
+/**
+ * Framework-agnostic client for the ACS REST API.
+ */
 final class AcsClient {
 
 	public const ENDPOINT = 'https://webservices.acscourier.net/ACSRestServices/api/ACSAutoRest';
@@ -22,10 +25,32 @@ final class AcsClient {
 	 */
 	private const NESTED_ERROR_KEYS = array( 'Error_Message', 'error_message', 'Error_msg', 'error_msg' );
 
+	/**
+	 * How requests reach ACS.
+	 *
+	 * @var Transport
+	 */
 	private Transport $transport;
+	/**
+	 * ACS account credentials.
+	 *
+	 * @var Credentials
+	 */
 	private Credentials $credentials;
+	/**
+	 * ACS REST endpoint URL.
+	 *
+	 * @var string
+	 */
 	private string $endpoint;
 
+	/**
+	 * __construct.
+	 *
+	 * @param Transport   $transport Transport.
+	 * @param Credentials $credentials Credentials.
+	 * @param string      $endpoint Endpoint.
+	 */
 	public function __construct( Transport $transport, Credentials $credentials, string $endpoint = self::ENDPOINT ) {
 		$this->transport   = $transport;
 		$this->credentials = $credentials;
@@ -33,9 +58,12 @@ final class AcsClient {
 	}
 
 	/**
-	 * @param array<string,mixed> $params
+	 * Calls an ACS method and returns its output.
+	 *
+	 * @param string              $alias  ACS method name, e.g. ACS_Create_Voucher.
+	 * @param array<string,mixed> $params Method parameters, merged with credentials.
 	 * @return array<string,mixed> Contents of ACSOutputResponce.
-	 * @throws AcsException
+	 * @throws AcsException If ACS rejects the call or the response cannot be parsed.
 	 */
 	public function call( string $alias, array $params = array() ): array {
 		$payload = array(
@@ -52,7 +80,11 @@ final class AcsClient {
 		return $this->parse( $alias, $raw );
 	}
 
-	/** @return array<string,string> */
+	/**
+	 * Builds the request headers, including the API key.
+	 *
+	 * @return array<string,string>
+	 */
 	private function headers(): array {
 		return array(
 			'Content-Type' => 'application/json',
@@ -62,8 +94,12 @@ final class AcsClient {
 	}
 
 	/**
+	 * Turns a raw response into ACS output, or throws.
+	 *
+	 * @param string            $alias ACS method the response came from.
+	 * @param TransportResponse $raw   Raw HTTP response.
 	 * @return array<string,mixed>
-	 * @throws AcsException
+	 * @throws AcsException If either error channel reports a failure.
 	 */
 	private function parse( string $alias, TransportResponse $raw ): array {
 		if ( 403 === $raw->status ) {
@@ -104,8 +140,14 @@ final class AcsClient {
 	}
 
 	/**
-	 * @param array<string,mixed> $response
-	 * @throws AcsException
+	 * Guards the second, silent error channel.
+	 *
+	 * ACS returns HTTP 200 with ACSExecution_HasError false for genuine failures,
+	 * putting the real message inside ACSValueOutput.
+	 *
+	 * @param string              $alias    ACS method the response came from.
+	 * @param array<string,mixed> $response Contents of ACSOutputResponce.
+	 * @throws AcsException If a nested error message is present.
 	 */
 	private function assertNoNestedError( string $alias, array $response ): void {
 		$values = $response['ACSValueOutput'] ?? null;
@@ -126,7 +168,9 @@ final class AcsClient {
 	}
 
 	/**
-	 * @param array<string,mixed> $response
+	 * Extracts the scalar output rows from a response.
+	 *
+	 * @param array<string,mixed> $response Contents of ACSOutputResponce.
 	 * @return array<int,array<string,mixed>>
 	 */
 	public function valueOutput( array $response ): array {
@@ -135,7 +179,9 @@ final class AcsClient {
 	}
 
 	/**
-	 * @param array<string,mixed> $response
+	 * Extracts the tabular output rows from a response.
+	 *
+	 * @param array<string,mixed> $response Contents of ACSOutputResponce.
 	 * @return array<int,array<string,mixed>>
 	 */
 	public function tableData( array $response ): array {

@@ -10,16 +10,43 @@ declare(strict_types=1);
 
 namespace AcsCourier\Api;
 
+/**
+ * Keeps the request rate under the ACS ceiling of ten calls per second.
+ */
 final class Throttle {
 
+	/**
+	 * Requests allowed per second.
+	 *
+	 * @var int
+	 */
 	private int $maxPerSecond;
-	/** @var callable */
+	/**
+	 * Injected collaborator.
+	 *
+	 * @var callable
+	 */
 	private $sleeper;
-	/** @var callable */
+	/**
+	 * Injected collaborator.
+	 *
+	 * @var callable
+	 */
 	private $clock;
-	/** @var list<float> */
+	/**
+	 * Timestamps of recent requests.
+	 *
+	 * @var list<float>
+	 */
 	private array $recent = array();
 
+	/**
+	 * __construct.
+	 *
+	 * @param int           $maxPerSecond Max per second.
+	 * @param callable|null $sleeper Sleeper.
+	 * @param callable|null $clock Clock.
+	 */
 	public function __construct( int $maxPerSecond = 8, ?callable $sleeper = null, ?callable $clock = null ) {
 		$this->maxPerSecond = max( 1, $maxPerSecond );
 		$this->sleeper      = $sleeper ?? static function ( float $seconds ): void {
@@ -30,6 +57,9 @@ final class Throttle {
 		};
 	}
 
+	/**
+	 * Acquire.
+	 */
 	public function acquire(): void {
 		$now          = ( $this->clock )();
 		$this->recent = array_values(

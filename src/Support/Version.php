@@ -10,6 +10,9 @@ declare(strict_types=1);
 
 namespace AcsCourier\Support;
 
+/**
+ * Version constants and the supported-platform floors.
+ */
 final class Version {
 
 	public const PLUGIN  = '0.1.0';

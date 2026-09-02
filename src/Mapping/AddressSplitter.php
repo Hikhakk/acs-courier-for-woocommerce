@@ -10,9 +10,17 @@ declare(strict_types=1);
 
 namespace AcsCourier\Mapping;
 
+/**
+ * Splits a one-line address into the street and number ACS wants separately.
+ */
 final class AddressSplitter {
 
-	/** @return array{street:string,number:string} */
+	/**
+	 * Splits an address into street and number.
+	 *
+	 * @param string $address One-line address.
+	 * @return array{street:string,number:string}
+	 */
 	public static function split( string $address ): array {
 		$normalised = trim( (string) preg_replace( '/\s+/u', ' ', $address ) );
 

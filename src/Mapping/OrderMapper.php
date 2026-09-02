@@ -16,6 +16,9 @@ use AcsCourier\Domain\Country;
 use AcsCourier\Domain\Shipment;
 use AcsCourier\Domain\Weight;
 
+/**
+ * Turns a WooCommerce order into a Shipment.
+ */
 final class OrderMapper {
 
 	/** Multipliers to kilograms, keyed by the WooCommerce weight unit. */
@@ -26,6 +29,13 @@ final class OrderMapper {
 		'oz'  => 0.028349523125,
 	);
 
+	/**
+	 * To shipment.
+	 *
+	 * @param OrderData      $order    Order to convert.
+	 * @param MapperSettings $settings Merchant configuration.
+	 * @return Shipment
+	 */
 	public static function toShipment( OrderData $order, MapperSettings $settings ): Shipment {
 		// Throws for anything ACS cannot ship to, before we build anything else.
 		$country = Country::fromCode( $order->countryCode );
@@ -63,6 +73,12 @@ final class OrderMapper {
 		return $shipment;
 	}
 
+	/**
+	 * Weight.
+	 *
+	 * @param OrderData $order Order.
+	 * @return Weight
+	 */
 	private static function weight( OrderData $order ): Weight {
 		$unit       = strtolower( trim( $order->weightUnit ) );
 		$multiplier = self::TO_KILOGRAMS[ $unit ] ?? 1.0;
@@ -71,8 +87,13 @@ final class OrderMapper {
 	}
 
 	/**
+	 * Builds the delivery note.
+	 *
 	 * ACS has no second address line, so anything there must reach the courier
 	 * as a delivery note rather than being silently dropped.
+	 *
+	 * @param OrderData $order Order to read.
+	 * @return string
 	 */
 	private static function notes( OrderData $order ): string {
 		$parts = array();

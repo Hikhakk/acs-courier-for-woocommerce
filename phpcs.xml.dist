@@ -22,7 +22,29 @@
         <!-- PSR-4 autoloading requires StudlyCase class filenames. -->
         <exclude name="WordPress.Files.FileName"/>
     </rule>
-    <rule ref="WordPress-Docs"/>
+    <rule ref="WordPress-Docs">
+        <!--
+            Test methods are named as sentences and read as documentation in
+            themselves; requiring @param prose on data providers adds noise
+            without adding meaning.
+        -->
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.Commenting">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Generic.Commenting">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.ValidVariableName">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.ValidFunctionName">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security.EscapeOutput">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
 
     <!--
         Naming: WPCS's snake_case rules date from procedural WordPress. This
@@ -46,6 +68,8 @@
     <rule ref="WordPress.Security.EscapeOutput.ExceptionNotEscaped">
         <exclude-pattern>src/Api/*</exclude-pattern>
         <exclude-pattern>src/Service/*</exclude-pattern>
+        <exclude-pattern>src/Domain/*</exclude-pattern>
+        <exclude-pattern>src/Mapping/*</exclude-pattern>
     </rule>
 
     <!-- Global prefixes for anything procedural. -->

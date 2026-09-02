@@ -13,11 +13,19 @@ namespace AcsCourier\Mapping;
 
 use AcsCourier\Domain\Shipment;
 
+/**
+ * Translates a Shipment into ACS parameter names, and validates it first.
+ */
 final class FieldMap {
 
 	public const MAX_PIECES = 99;
 
-	/** @return array<string,mixed> */
+	/**
+	 * Translates a shipment into ACS create-voucher parameters.
+	 *
+	 * @param Shipment $s Shipment to translate.
+	 * @return array<string,mixed>
+	 */
 	public static function toCreateVoucherParams( Shipment $s ): array {
 		$country = null !== $s->country ? $s->country->code() : '';
 		$weight  = null !== $s->weight ? $s->weight->forAcs() : null;
@@ -66,6 +74,7 @@ final class FieldMap {
 	/**
 	 * Local pre-flight validation, so we never spend an API call on data ACS will reject.
 	 *
+	 * @param \AcsCourier\Domain\Shipment $s Shipment to check.
 	 * @return list<string> Human-readable problems; empty means valid.
 	 */
 	public static function validate( Shipment $s ): array {

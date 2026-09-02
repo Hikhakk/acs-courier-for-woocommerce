@@ -1,5 +1,7 @@
 <?php
 /**
+ * Creates ACS vouchers from shipments.
+ *
  * @package AcsCourier
  * @license GPL-2.0-or-later
  */
@@ -13,17 +15,34 @@ use AcsCourier\Api\RetryingClient;
 use AcsCourier\Domain\Shipment;
 use AcsCourier\Mapping\FieldMap;
 
+/**
+ * Creates ACS vouchers from shipments.
+ */
 final class ShipmentService {
 
 	public const ALIAS_CREATE = 'ACS_Create_Voucher';
 
+	/**
+	 * ACS client used to send the request.
+	 *
+	 * @var RetryingClient
+	 */
 	private RetryingClient $client;
 
+	/**
+	 * __construct.
+	 *
+	 * @param RetryingClient $client Client.
+	 */
 	public function __construct( RetryingClient $client ) {
 		$this->client = $client;
 	}
 
 	/**
+	 * Creates a voucher and returns its number.
+	 *
+	 * @param \AcsCourier\Domain\Shipment $shipment Shipment to send.
+	 * @return string
 	 * @throws \InvalidArgumentException When the shipment is locally invalid.
 	 * @throws AcsException When ACS rejects it.
 	 */
