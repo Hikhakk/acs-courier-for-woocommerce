@@ -45,6 +45,16 @@
     <rule ref="WordPress.Security.EscapeOutput">
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
+    <!--
+        Unit tests run without WordPress loaded, so wp_json_encode() and
+        wp_remote_get() do not exist there. The plain PHP functions are correct.
+    -->
+    <rule ref="WordPress.WP.AlternativeFunctions">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.PHP.DevelopmentFunctions">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
 
     <!--
         Naming: WPCS's snake_case rules date from procedural WordPress. This
