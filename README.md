@@ -89,11 +89,11 @@ issued — after that, deletion is impossible.
 ## Roadmap
 
 - [x] Voucher creation from an order
-- [ ] Label printing (thermal and A4 laser)
-- [ ] Pickup list workflow
+- [x] Label printing (thermal and A4 laser)
+- [x] Pickup list workflow
+- [x] Tracking sync and non-delivery reasons
 - [ ] Smartpoint locker selection at checkout (~1,590 points across GR and CY)
 - [ ] Shipping method with live Greek pricing and a Cypriot rate table
-- [ ] Tracking sync and customer-facing tracking
 - [ ] Cash on delivery
 
 ## Contributing
