@@ -1,0 +1,10 @@
+{
+  "ACSExecution_HasError": false,
+  "ACSExecutionErrorMessage": "",
+  "ACSOutputResponce": {
+    "ACSValueOutput": [
+      { "Error_Message": "Νο Acs shipment found for your company with voucher no: 0" }
+    ],
+    "ACSTableOutput": {}
+  }
+}
