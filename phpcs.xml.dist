@@ -55,6 +55,10 @@
     <rule ref="WordPress.PHP.DevelopmentFunctions">
         <exclude-pattern>tests/*</exclude-pattern>
     </rule>
+    <!-- Fixtures base64-encode fake PDF bytes, which is what ACS actually returns. -->
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
 
     <!--
         Naming: WPCS's snake_case rules date from procedural WordPress. This
